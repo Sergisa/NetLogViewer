@@ -1,10 +1,14 @@
 public class Cat extends Animal implements DomesticAnimal{
-    public Cat(){}
+    private String name;
+    public Cat(String name){
+        this.name = name;
+    }
 
     @Override
     public void run() {
 
     }
+
 
     @Override
     public void talk() {
@@ -14,5 +18,17 @@ public class Cat extends Animal implements DomesticAnimal{
     @Override
     public void look() {
         super.look();
+    }
+
+    @Override
+    public String toString() {
+        return "Cat{" +
+                "name='" + name + '\'' +
+                '}';
+    }
+
+    public String getName() {
+
+        return this.name;
     }
 }
