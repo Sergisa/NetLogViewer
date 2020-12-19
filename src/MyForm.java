@@ -72,7 +72,7 @@ public class MyForm extends JFrame {
         {
             @Override
             public void actionPerformed(ActionEvent arg0) {
-                System.out.println ("ActionListener.actionPerformed : open");
+                System.out.println("Запускаю диалог выбора файла");
                 JFileChooser chooser = new JFileChooser();
                 int res = chooser.showDialog(null, "Открыть файл");
                 if(res==JFileChooser.APPROVE_OPTION){

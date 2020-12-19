@@ -1,6 +1,5 @@
 package packet;
 
-import fr.bmartel.pcapdecoder.PcapDecoder;
 import org.pcap4j.core.*;
 import org.pcap4j.packet.IpV4Packet;
 
@@ -29,9 +28,15 @@ public class PCAPFileParser implements Parser{
                 @Override
                 public void gotPacket(PcapPacket packet) {
                     //TODO: наполнение списка объектов Packet
-                    System.out.print(packet.get(IpV4Packet.class).getHeader().getSrcAddr().getHostAddress() + " --> ");
-                    System.out.print(packet.get(IpV4Packet.class).getHeader().getDstAddr().getHostAddress() + " ");
-                    System.out.println(packet.get(IpV4Packet.class).getHeader().getProtocol().name());
+                    IpV4Packet.IpV4Header header = packet.get(IpV4Packet.class).getHeader();
+                    packets.add(
+                            new Packet(
+                                    packet.getPayload().length(),
+                                    header.getProtocol().name(),
+                                    header.getSrcAddr().getHostAddress(),
+                                    header.getDstAddr().getHostAddress()
+                            )
+                    );
                 }
             });
         } catch (PcapNativeException | NotOpenException | InterruptedException e) {
