@@ -1,13 +1,19 @@
 package packet;
 
 public class Packet {
-
+    private int bytes;
     private Type type;
     private String source;
     private String destination;
 
-    public Packet(Type type) {
+    public Packet(int bytes, Type type, String source, String destination) {
+        this.bytes = bytes;
         this.type = type;
+        this.source = source;
+        this.destination = destination;
+    }
+    public Packet(int bytes, String type, String source, String destination) {
+        this(bytes, Type.build(type), source, destination);
     }
 
 
@@ -39,6 +45,15 @@ public class Packet {
 
     public enum Type{
         TCP,
-        UDP
+        UDP,
+        UNKNOWN;
+
+        static Type build(String name){
+            return switch (name) {
+                case "UDP" -> Type.UDP;
+                case "TCP" -> Type.TCP;
+                default -> Type.UNKNOWN;
+            };
+        }
     }
 }
