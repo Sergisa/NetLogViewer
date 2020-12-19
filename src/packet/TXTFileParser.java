@@ -5,18 +5,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class TXTFileReader extends Reader {
-    public TXTFileReader(String filepath) {
-        super(filepath);
+public class TXTFileParser implements Parser {
+    private final File file;
+    public TXTFileParser(String filepath) {
+        this(new File(filepath));
     }
 
-    @Override
+    public TXTFileParser(File file) {
+        this.file = file;
+    }
+
     public List<String> read() {
         return new ArrayList<String>();
-    }
-
-    public String readLine(int num){
-        return "";
     }
 
     public List<Packet> getPackets(){
@@ -24,7 +24,7 @@ public class TXTFileReader extends Reader {
         this.read().forEach(new Consumer<String>() {
             @Override
             public void accept(String s) {
-                packets.add(Packet.build(s));
+                //TODO: наполнение списка объектов Packet
             }
         });
         return packets;

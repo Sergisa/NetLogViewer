@@ -2,7 +2,6 @@ package packet;
 
 import java.util.List;
 
-public interface FileReader {
-    List<String> read();
+public interface Parser {
     List<Packet> getPackets();
 }

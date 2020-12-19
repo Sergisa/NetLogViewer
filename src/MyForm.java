@@ -1,5 +1,6 @@
+import packet.FileParserFactory;
 import packet.Packet;
-import packetListModel.PacketListRenderer;
+import packetListModel.PacketListViewRenderer;
 import pck.ImageResizer;
 
 import javax.swing.*;
@@ -30,7 +31,7 @@ public class MyForm extends JFrame {
         packetList.setFixedCellHeight(30);
         packetList.setBorder(new EmptyBorder(10,10, 10, 10));
 
-        packetList.setCellRenderer(new PacketListRenderer());
+        packetList.setCellRenderer(new PacketListViewRenderer());
         packetList.addListSelectionListener(new ListSelectionListener() {
             @Override
             public void valueChanged(ListSelectionEvent e) {
@@ -56,10 +57,11 @@ public class MyForm extends JFrame {
 
     private JMenu createFileMenu()
     {
+        JMenuItem exit, open;
         JMenu file = new JMenu("Файл");
-        JMenuItem open = new JMenuItem("Открыть", ImageResizer.getResized(new ImageIcon("open.png"), 16, 16));
+        open = new JMenuItem("Открыть", ImageResizer.getResized(new ImageIcon("open.png"), 16, 16));
         open.setIconTextGap(10);
-        JMenuItem exit = new JMenuItem(new ExitAction());
+        exit = new JMenuItem(new ExitAction());
         exit.setIconTextGap(10);
         exit.setIcon(ImageResizer.getResized(new ImageIcon("close.png"), 16, 16));
         file.add(open);
@@ -75,31 +77,17 @@ public class MyForm extends JFrame {
                 int res = chooser.showDialog(null, "Открыть файл");
                 if(res==JFileChooser.APPROVE_OPTION){
                     File file = chooser.getSelectedFile();
-                    System.out.println(file.getName());
+                    setPackets(FileParserFactory.produce(file.getPath()).getPackets());
                 }
             }
         });
         return file;
     }
 
-    private JMenu createViewMenu()
-    {
-        JMenu viewMenu = new JMenu("Вид");
-        JCheckBoxMenuItem line  = new JCheckBoxMenuItem("Линейка");
-        JCheckBoxMenuItem grid  = new JCheckBoxMenuItem("Сетка");
-        JCheckBoxMenuItem navig = new JCheckBoxMenuItem("Навигация");
-        JRadioButtonMenuItem one = new JRadioButtonMenuItem("Одна страница");
-        JRadioButtonMenuItem two = new JRadioButtonMenuItem("Две страницы");
-        ButtonGroup bg = new ButtonGroup();
-        bg.add(one);
-        bg.add(two);
-        viewMenu.add(line);
-        viewMenu.add(grid);
-        viewMenu.add(navig);
-        viewMenu.add( new JSeparator());
-        viewMenu.add(one);
-        viewMenu.add(two);
-        return viewMenu;
+    private void updateViews(Packet packet){
+        destLabel.setText(packet.getDestination());
+        sourceLabel.setText(packet.getSource());
+        System.out.println(packet.getType());
     }
 
     static class ExitAction extends AbstractAction
@@ -111,11 +99,5 @@ public class MyForm extends JFrame {
         public void actionPerformed(ActionEvent e) {
             System.exit(0);
         }
-    }
-
-    private void updateViews(Packet packet){
-        destLabel.setText(packet.getDestination());
-        sourceLabel.setText(packet.getSource());
-        System.out.println(packet.getType());
     }
 }
