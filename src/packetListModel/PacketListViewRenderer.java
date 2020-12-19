@@ -19,8 +19,8 @@ public class PacketListViewRenderer extends JLabel implements ListCellRenderer<P
 
     @Override
     public Component getListCellRendererComponent(JList<? extends Packet> list, Packet packet, int index, boolean isSelected, boolean cellHasFocus) {
-        imageIcon = new ImageIcon(getClass().getResource(packet.getType().toString() + ".png"));
-        imageIcon.setImage( imageIcon.getImage().getScaledInstance(30,30,2) );
+        imageIcon = new ImageIcon("packetListModel/" + packet.getType().toString().toUpperCase() + ".png");
+        imageIcon.setImage(imageIcon.getImage().getScaledInstance(30, 30, 2));
 
         if (isSelected) {
             setBackground(INDIGO);

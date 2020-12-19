@@ -1,7 +1,7 @@
 package packet;
 
 public class Packet {
-    private int bytes;
+    private final int bytes;
     private Type type;
     private String source;
     private String destination;
@@ -43,15 +43,24 @@ public class Packet {
         this.type = type;
     }
 
-    public enum Type{
+    @Override
+    public String toString() {
+        return "Packet{" +
+                "type=" + type.toString() +
+                '}';
+    }
+
+    public enum Type {
         TCP,
         UDP,
+        ICMP,
         UNKNOWN;
 
-        static Type build(String name){
+        static Type build(String name) {
             return switch (name) {
                 case "UDP" -> Type.UDP;
                 case "TCP" -> Type.TCP;
+                case "ICMP" -> Type.ICMP;
                 default -> Type.UNKNOWN;
             };
         }
