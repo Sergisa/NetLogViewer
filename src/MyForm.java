@@ -27,8 +27,6 @@ public class MyForm extends JFrame {
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        packetList.setFixedCellWidth(100);
-        packetList.setFixedCellHeight(30);
         packetList.setBorder(new EmptyBorder(10,10, 10, 10));
 
         packetList.setCellRenderer(new PacketListViewRenderer());

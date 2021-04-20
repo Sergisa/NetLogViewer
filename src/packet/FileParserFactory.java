@@ -2,7 +2,6 @@ package packet;
 
 public class FileParserFactory {
     public static Parser produce(String filepath){
-        Parser result = null;
 
         if(filepath.toLowerCase().endsWith(".pcapng")) {
             return new PCAPFileParser(filepath);
