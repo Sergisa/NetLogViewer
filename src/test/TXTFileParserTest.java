@@ -1,4 +1,4 @@
-package test.java;
+package test;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -11,14 +11,14 @@ public class TXTFileParserTest {
 
     @Test
     public void getPackets() {
-        String address = getClass().getResource( "2-iptraf.log").getPath();
+        String address = getClass().getResource( "iptraf.log").getPath();
         TXTFileParser parser = new TXTFileParser(address);
         Assertions.assertNotSame(0, parser.getPackets().size());
     }
 
     @Test
     void read() {
-        String address = getClass().getResource("2-iptraf.log").getPath();
+        String address = getClass().getResource("iptraf.log").getPath();
         TXTFileParser parser = new TXTFileParser(address);
         Assertions.assertNotSame(0, parser.read().size());
     }

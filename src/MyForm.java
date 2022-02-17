@@ -1,7 +1,6 @@
 import packet.FileParserFactory;
 import packet.Packet;
 import packetListModel.PacketListViewRenderer;
-import pck.ImageResizer;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -15,7 +14,6 @@ import java.util.List;
 public class MyForm extends JFrame {
     private JPanel panel;
     private JList<Packet> packetList;
-    private JButton button1;
     private JLabel sourceLabel;
     private JLabel destLabel;
     private JLabel direction;
@@ -57,11 +55,11 @@ public class MyForm extends JFrame {
     {
         JMenuItem exit, open;
         JMenu file = new JMenu("Файл");
-        open = new JMenuItem("Открыть", ImageResizer.getResized(new ImageIcon("open.png"), 16, 16));
+        open = new JMenuItem("Открыть", ImageResizer.getResized(new ImageIcon("src/open.png"), 16, 16));
         open.setIconTextGap(10);
         exit = new JMenuItem(new ExitAction());
         exit.setIconTextGap(10);
-        exit.setIcon(ImageResizer.getResized(new ImageIcon("close.png"), 16, 16));
+        exit.setIcon(ImageResizer.getResized(new ImageIcon("src/close.png"), 16, 16));
         file.add(open);
         file.addSeparator();
         file.add(exit);

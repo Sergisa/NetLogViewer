@@ -10,10 +10,8 @@ public class Main {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
-                Loader l = new Loader();
-                l.setVisible(true);
                 MyForm form = new MyForm();
-                List<Packet> packetsList = FileParserFactory.produce("test/java/2-iptraf.log").getPackets();
+                List<Packet> packetsList = FileParserFactory.produce("src/test/iptraf.log").getPackets();
                 form.setPackets(packetsList);
                 form.setSize(500, 500);
             }
