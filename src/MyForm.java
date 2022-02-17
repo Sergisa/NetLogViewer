@@ -13,20 +13,18 @@ import java.util.List;
 
 public class MyForm extends JFrame {
     private JPanel panel;
-    private JList<Packet> packetList;
     private JLabel sourceLabel;
     private JLabel destLabel;
     private JLabel direction;
+    private JList<Packet> packetList;
 
     public MyForm() {
+
         setDefaultLookAndFeelDecorated(true);
         setContentPane(panel);
         setVisible(true);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-        packetList.setBorder(new EmptyBorder(10,10, 10, 10));
-
         packetList.setCellRenderer(new PacketListViewRenderer());
         packetList.addListSelectionListener(new ListSelectionListener() {
             @Override
@@ -39,20 +37,18 @@ public class MyForm extends JFrame {
 
         JMenuBar menuBar = new JMenuBar();
         menuBar.add(createFileMenu());
-        //menuBar.add(createViewMenu());
         setJMenuBar(menuBar);
     }
 
     public void setPackets(List<Packet> packetsList) {
         DefaultListModel<Packet> listModel = new DefaultListModel<>();
-        for (Packet p : packetsList){
+        for (Packet p : packetsList) {
             listModel.addElement(p);
         }
         packetList.setModel(listModel);
     }
 
-    private JMenu createFileMenu()
-    {
+    private JMenu createFileMenu() {
         JMenuItem exit, open;
         JMenu file = new JMenu("Файл");
         open = new JMenuItem("Открыть", ImageResizer.getResized(new ImageIcon("src/open.png"), 16, 16));
@@ -64,14 +60,13 @@ public class MyForm extends JFrame {
         file.addSeparator();
         file.add(exit);
 
-        open.addActionListener(new ActionListener()
-        {
+        open.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent arg0) {
                 System.out.println("Запускаю диалог выбора файла");
                 JFileChooser chooser = new JFileChooser();
                 int res = chooser.showDialog(null, "Открыть файл");
-                if(res==JFileChooser.APPROVE_OPTION){
+                if (res == JFileChooser.APPROVE_OPTION) {
                     File file = chooser.getSelectedFile();
                     setPackets(FileParserFactory.produce(file.getPath()).getPackets());
                 }
@@ -80,18 +75,22 @@ public class MyForm extends JFrame {
         return file;
     }
 
-    private void updateViews(Packet packet){
+    private void updateViews(Packet packet) {
         destLabel.setText(packet.getDestination());
         sourceLabel.setText(packet.getSource());
         System.out.println(packet.getType());
     }
 
-    static class ExitAction extends AbstractAction
-    {
+    private void createUIComponents() {
+    }
+
+    static class ExitAction extends AbstractAction {
         private static final long serialVersionUID = 1L;
+
         ExitAction() {
             putValue(NAME, "Выход");
         }
+
         public void actionPerformed(ActionEvent e) {
             System.exit(0);
         }

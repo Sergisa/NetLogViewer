@@ -1,3 +1,4 @@
+import com.formdev.flatlaf.FlatDarculaLaf;
 import packet.FileParserFactory;
 import packet.Packet;
 
@@ -7,6 +8,7 @@ import java.util.List;
 public class Main {
 
     public static void main(String[] args) {
+        FlatDarculaLaf.install();
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
@@ -16,6 +18,5 @@ public class Main {
                 form.setSize(500, 500);
             }
         });
-
     }
 }
