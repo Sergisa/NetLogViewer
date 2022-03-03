@@ -12,10 +12,10 @@ public class Packet {
         this.source = source;
         this.destination = destination;
     }
+
     public Packet(int bytes, String type, String source, String destination) {
         this(bytes, Type.build(type), source, destination);
     }
-
 
     public String getSource() {
         return source;
@@ -58,10 +58,10 @@ public class Packet {
 
         static Type build(String name) {
             return switch (name) {
-                case "UDP" -> Type.UDP;
-                case "TCP" -> Type.TCP;
-                case "ICMP" -> Type.ICMP;
-                default -> Type.UNKNOWN;
+                case "UDP" -> UDP;
+                case "TCP" -> TCP;
+                case "ICMP" -> ICMP;
+                default -> UNKNOWN;
             };
         }
     }

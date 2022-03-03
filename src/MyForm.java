@@ -3,7 +3,6 @@ import packet.Packet;
 import packetListModel.PacketListViewRenderer;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.event.ActionEvent;
@@ -17,6 +16,8 @@ public class MyForm extends JFrame {
     private JLabel destLabel;
     private JLabel direction;
     private JList<Packet> packetList;
+    private JScrollPane scrollView;
+    private JLayeredPane listLayeredPane;
 
     public MyForm() {
 

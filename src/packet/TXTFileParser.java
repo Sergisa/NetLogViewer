@@ -23,7 +23,7 @@ public class TXTFileParser implements Parser {
     }
 
     public List<String> read() {
-        List<String> result = new ArrayList<String>();
+        List<String> result = new ArrayList<>();
         try {
             InputStreamReader inputStreamReader = new InputStreamReader(new FileInputStream(this.file));
             BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
