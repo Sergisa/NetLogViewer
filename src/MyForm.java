@@ -1,6 +1,7 @@
 import com.formdev.flatlaf.extras.FlatSVGIcon;
 import packet.FileParserFactory;
 import packet.Packet;
+import packet.Parser;
 import packetListModel.PacketListViewRenderer;
 
 import javax.swing.*;
@@ -20,6 +21,7 @@ public class MyForm extends JFrame {
     private JList<Packet> packetListView;
     private JScrollPane scrollView;
     private JLayeredPane listLayeredPane;
+    Parser parser;
 
     public MyForm() {
         setContentPane(panel);
@@ -35,10 +37,13 @@ public class MyForm extends JFrame {
                 }
             }
         });
-
         JMenuBar menuBar = new JMenuBar();
         menuBar.add(createFileMenu());
         setJMenuBar(menuBar);
+    }
+
+    public void packetParsed() {
+
     }
 
     public void setPackets(List<Packet> packetsList) {
@@ -84,7 +89,8 @@ public class MyForm extends JFrame {
         listLayeredPane = new JLayeredPane();
         LoadingPanel loadingPanel = new LoadingPanel();
         listLayeredPane.add(loadingPanel, JLayeredPane.PALETTE_LAYER);
-        loadingPanel.setBounds(300, 10, 150, 30);
+        loadingPanel.setBounds(320, 10, 130, 30);
+        loadingPanel.start();
     }
 
     static class ExitAction extends AbstractAction {

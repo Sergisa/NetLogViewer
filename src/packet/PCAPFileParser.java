@@ -8,7 +8,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PCAPFileParser implements Parser {
+public class PCAPFileParser extends AbstractParser implements Parser {
     private final File file;
 
     public PCAPFileParser(File file) {
@@ -28,7 +28,6 @@ public class PCAPFileParser implements Parser {
             handle.dispatch(1400, new PacketListener() {
                 @Override
                 public void gotPacket(PcapPacket packet) {
-                    //TODO: наполнение списка объектов Packet
                     IpV4Packet.IpV4Header v4Header = packet.get(IpV4Packet.class).getHeader();
                     packets.add(
                             new Packet(

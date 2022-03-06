@@ -1,5 +1,7 @@
 package packet;
 
+import java.util.regex.Matcher;
+
 public class Packet {
     private final int bytes;
     private Type type;
@@ -15,6 +17,15 @@ public class Packet {
 
     public Packet(int bytes, String type, String source, String destination) {
         this(bytes, Type.build(type), source, destination);
+    }
+
+    public Packet(String s, Matcher m) {
+        this(
+                Integer.parseInt(s.split("; ")[3].replace(" bytes", "")),
+                s.split("; ")[1],
+                m.group(1),
+                m.group(2)
+        );
     }
 
     public String getSource() {
