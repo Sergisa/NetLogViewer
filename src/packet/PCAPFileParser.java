@@ -8,8 +8,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PCAPFileParser implements Parser{
+public class PCAPFileParser implements Parser {
     private final File file;
+
     public PCAPFileParser(File file) {
         this.file = file;
     }
@@ -24,8 +25,6 @@ public class PCAPFileParser implements Parser{
         final ArrayList<Packet> packets = new ArrayList<>();
         try {
             handle = Pcaps.openOffline(this.file.getPath());
-
-            //handle.setFilter("udp", BpfProgram.BpfCompileMode.OPTIMIZE);
             handle.dispatch(1400, new PacketListener() {
                 @Override
                 public void gotPacket(PcapPacket packet) {

@@ -7,8 +7,7 @@ public class PCAPFileParserTest {
 
     @Test
     public void getPackets() {
-        String address = getClass().getResource( "log_ws.pcap").getPath();
+        String address = getClass().getResource("log_ws.pcap").getPath();
         PCAPFileParser parser = new PCAPFileParser(address);
-        System.out.println(parser.getPackets().size());
     }
 }

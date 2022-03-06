@@ -11,7 +11,7 @@ public class TXTFileParserTest {
 
     @Test
     public void getPackets() {
-        String address = getClass().getResource( "iptraf.log").getPath();
+        String address = getClass().getResource("iptraf.log").getPath();
         TXTFileParser parser = new TXTFileParser(address);
         Assertions.assertNotSame(0, parser.getPackets().size());
     }
@@ -28,16 +28,9 @@ public class TXTFileParserTest {
         Pattern destSourcePattern = Pattern.compile("from ([^;]*) to ([^;]*)");
         Matcher m = destSourcePattern.matcher("from 192.168.103.253:62172 to 81-1-183-199.broadband.progtech.ru:57847");
 
-
-        System.out.println(m.find());
-        System.out.println(m.group(0));
-        System.out.println(m.group(1));
-        System.out.println(m.group(2));
         Assertions.assertNotNull(
                 m.group(0)
         );
-        /*Assertions.assertNotNull(
-            destSourcePattern.matcher("Tue Aug 21 12:29:26 2018; UDP; eth0; 139 bytes; from 192.168.103.1:45323 to 255.255.255.255:5678").group(1)
-        );*/
+
     }
 }
