@@ -6,8 +6,8 @@ import java.awt.*;
 class LoadingPanel extends JPanel {
 
     private final FlatSVGIcon loadingIcon = new FlatSVGIcon("refresh.svg");
-    private int loadingCounter = 0;
     private final JLabel loadingLabel;
+    private int loadingCounter = 0;
     private Timer loadingIconTimer;
 
     public LoadingPanel(LayoutManager layout) {
@@ -32,10 +32,7 @@ class LoadingPanel extends JPanel {
         loadingIcon.setColorFilter(new FlatSVGIcon.ColorFilter(color -> {
             loadingCounter += 6;
             loadingCounter %= 255;
-            Color c = new Color(color.getRed(), color.getGreen(), color.getBlue(), loadingCounter);
-            System.out.print(c);
-            System.out.println(loadingCounter);
-            return c;
+            return new Color(color.getRed(), color.getGreen(), color.getBlue(), loadingCounter);
         }));
         loadingLabel.setIcon(loadingIcon);
 
@@ -44,5 +41,13 @@ class LoadingPanel extends JPanel {
 
     public void start() {
         loadingIconTimer.start();
+    }
+
+    public void reset() {
+        loadingIconTimer.restart();
+    }
+
+    public void stop() {
+        loadingIconTimer.stop();
     }
 }

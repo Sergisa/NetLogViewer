@@ -1,16 +1,13 @@
 package packet;
 
 import java.io.*;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class TXTFileParser extends AbstractParser implements Parser {
-    private final File file;
-    private final int TYPE_COLUMN_INDEX = 1;
-    private final int BYTES_COLUMN_INDEX = 3;
     private final int SOURCE_DEST_COLUMN_INDEX = 4;
     private final String COLUMN_SPLITTER = "; ";
 
@@ -37,13 +34,12 @@ public class TXTFileParser extends AbstractParser implements Parser {
         return result;
     }
 
-    public List<Packet> getPackets() {
+    public void run() {
         List<Packet> localParsedPacketList = new ArrayList<>();
         Pattern destSourcePattern = Pattern.compile("from ([^;]*) to ([^;]*)");
 
-        this.read().forEach(new Consumer<String>() {
-            @Override
-            public void accept(String fileLine) {
+        this.read().forEach(fileLine -> {
+            try {
                 if (!fileLine.contains("IP traffic monitor started")) {
                     Matcher matcher = destSourcePattern.matcher(fileLine.split(COLUMN_SPLITTER)[SOURCE_DEST_COLUMN_INDEX]);
                     if (matcher.find()) {
@@ -52,9 +48,10 @@ public class TXTFileParser extends AbstractParser implements Parser {
                         packetParsedListener.parsed(parsedPacket);
                     }
                 }
+            } catch (ParseException ignored) {
+
             }
         });
         fileParsedListener.parsed(localParsedPacketList);
-        return localParsedPacketList;
     }
 }

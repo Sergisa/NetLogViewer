@@ -2,56 +2,54 @@ import com.formdev.flatlaf.extras.FlatSVGIcon;
 import packet.FileParserFactory;
 import packet.Packet;
 import packet.Parser;
-import packetListModel.PacketListViewRenderer;
+import packetListModel.ListRowView;
 
 import javax.swing.*;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.Serial;
 import java.util.List;
 
 public class MyForm extends JFrame {
+    private final DefaultListModel<Packet> packetListViewModel = new DefaultListModel<>();
     private JPanel panel;
     private JLabel sourceLabel;
     private JLabel destLabel;
-    private JLabel direction;
     private JList<Packet> packetListView;
-    private JScrollPane scrollView;
     private JLayeredPane listLayeredPane;
-    Parser parser;
+    private Parser parser;
+    private LoadingPanel loadingPanel;
 
-    public MyForm() {
-        setContentPane(panel);
+    public MyForm(Parser p) {
+        this.parser = p;
         setVisible(true);
+        setContentPane(panel);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        packetListView.setCellRenderer(new PacketListViewRenderer());
-        packetListView.addListSelectionListener(new ListSelectionListener() {
-            @Override
-            public void valueChanged(ListSelectionEvent e) {
-                if (!e.getValueIsAdjusting()) {
-                    updateViews(packetListView.getSelectedValue());
-                }
+        packetListView.setCellRenderer(new ListRowView());
+        packetListView.addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                updateViews(packetListView.getSelectedValue());
             }
         });
+        updateParser(parser);
+        packetListView.setModel(packetListViewModel);
         JMenuBar menuBar = new JMenuBar();
         menuBar.add(createFileMenu());
         setJMenuBar(menuBar);
+        //оптимальный размер окна
+        pack();
     }
 
-    public void packetParsed() {
-
+    private void fileParsed(List<Packet> parsedPackets) {
+        packetListViewModel.addAll(parsedPackets);
+        loadingPanel.stop();
+        loadingPanel.setVisible(false);
     }
 
-    public void setPackets(List<Packet> packetsList) {
-        DefaultListModel<Packet> listModel = new DefaultListModel<>();
-        for (Packet p : packetsList) {
-            listModel.addElement(p);
-        }
-        packetListView.setModel(listModel);
+    public void packetParsed(Packet parsedPacket) {
+        packetListViewModel.addElement(parsedPacket);
+        loadingPanel.reset();
     }
 
     private JMenu createFileMenu() {
@@ -66,18 +64,24 @@ public class MyForm extends JFrame {
         file.addSeparator();
         file.add(exit);
 
-        open.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent arg) {
-                JFileChooser chooser = new JFileChooser();
-                int res = chooser.showDialog(null, "Открыть файл");
-                if (res == JFileChooser.APPROVE_OPTION) {
-                    File file = chooser.getSelectedFile();
-                    setPackets(FileParserFactory.produce(file.getPath()).getPackets());
-                }
+        open.addActionListener(actionEvent -> {
+            JFileChooser chooser = new JFileChooser();
+            chooser.setCurrentDirectory(parser.getFile());
+            packetListViewModel.removeAllElements();
+            int res = chooser.showDialog(null, "Открыть файл");
+            if (res == JFileChooser.APPROVE_OPTION) {
+                File chosenFile = chooser.getSelectedFile();
+                parser = FileParserFactory.produce(chosenFile.getPath());
+                updateParser(parser);
             }
         });
         return file;
+    }
+
+    private void updateParser(Parser parser) {
+        parser.setFileParsedListener(this::fileParsed);
+        parser.setPacketParsedListener(this::packetParsed);
+        parser.run();
     }
 
     private void updateViews(Packet packet) {
@@ -87,7 +91,7 @@ public class MyForm extends JFrame {
 
     private void createUIComponents() {
         listLayeredPane = new JLayeredPane();
-        LoadingPanel loadingPanel = new LoadingPanel();
+        loadingPanel = new LoadingPanel();
         listLayeredPane.add(loadingPanel, JLayeredPane.PALETTE_LAYER);
         loadingPanel.setBounds(320, 10, 130, 30);
         loadingPanel.start();

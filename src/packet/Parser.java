@@ -1,7 +1,13 @@
 package packet;
 
-import java.util.List;
+import java.io.File;
 
 public interface Parser {
-    List<Packet> getPackets();
+    void run();
+
+    void setFileParsedListener(OnFileParsedListener fileParsedListener);
+
+    void setPacketParsedListener(OnPacketParsedListener packetParsedListener);
+
+    File getFile();
 }
