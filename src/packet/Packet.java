@@ -78,4 +78,52 @@ public class Packet {
             };
         }
     }
+
+    public static final class PacketBuilder {
+        private Date date;
+        private int bytes;
+        private Type type;
+        private String source;
+        private String destination;
+
+        private PacketBuilder() {
+        }
+
+        public static PacketBuilder aPacket() {
+            return new PacketBuilder();
+        }
+
+        public PacketBuilder withDate(Date date) {
+            this.date = date;
+            return this;
+        }
+
+        public PacketBuilder withBytes(int bytes) {
+            this.bytes = bytes;
+            return this;
+        }
+
+        public PacketBuilder withType(Type type) {
+            this.type = type;
+            return this;
+        }
+
+        public PacketBuilder withSource(String source) {
+            this.source = source;
+            return this;
+        }
+
+        public PacketBuilder withDestination(String destination) {
+            this.destination = destination;
+            return this;
+        }
+
+        public PacketBuilder but() {
+            return aPacket().withDate(date).withBytes(bytes).withType(type).withSource(source).withDestination(destination);
+        }
+
+        public Packet build() {
+            return new Packet(date, bytes, type, source, destination);
+        }
+    }
 }
