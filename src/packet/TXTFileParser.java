@@ -19,7 +19,28 @@ public class TXTFileParser extends AbstractParser implements Parser {
         this.file = file;
     }
 
-    public List<String> read() {
+    public List<Packet> readPackets() {
+        List<Packet> localParsedPacketList = new ArrayList<>();
+        Pattern destSourcePattern = Pattern.compile("from ([^;]*) to ([^;]*)");
+
+        readStrings().forEach(fileLine -> {
+            try {
+                if (!fileLine.contains("IP traffic monitor started")) {
+                    Matcher matcher = destSourcePattern.matcher(fileLine.split(COLUMN_SPLITTER)[SOURCE_DEST_COLUMN_INDEX]);
+                    if (matcher.find()) {
+                        Packet parsedPacket = new Packet(fileLine, matcher);
+                        localParsedPacketList.add(parsedPacket);
+                        packetParsedListener.parsed(parsedPacket);
+                    }
+                }
+            } catch (ParseException ignored) {
+
+            }
+        });
+        return localParsedPacketList;
+    }
+
+    private List<String> readStrings() {
         List<String> result = new ArrayList<>();
         try {
             InputStreamReader inputStreamReader = new InputStreamReader(new FileInputStream(this.file));
@@ -35,23 +56,6 @@ public class TXTFileParser extends AbstractParser implements Parser {
     }
 
     public void run() {
-        List<Packet> localParsedPacketList = new ArrayList<>();
-        Pattern destSourcePattern = Pattern.compile("from ([^;]*) to ([^;]*)");
-
-        this.read().forEach(fileLine -> {
-            try {
-                if (!fileLine.contains("IP traffic monitor started")) {
-                    Matcher matcher = destSourcePattern.matcher(fileLine.split(COLUMN_SPLITTER)[SOURCE_DEST_COLUMN_INDEX]);
-                    if (matcher.find()) {
-                        Packet parsedPacket = new Packet(fileLine, matcher);
-                        localParsedPacketList.add(parsedPacket);
-                        packetParsedListener.parsed(parsedPacket);
-                    }
-                }
-            } catch (ParseException ignored) {
-
-            }
-        });
-        fileParsedListener.parsed(localParsedPacketList);
+        fileParsedListener.parsed(readPackets());
     }
 }

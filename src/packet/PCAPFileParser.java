@@ -11,6 +11,7 @@ import org.pcap4j.packet.IpV6Packet;
 import java.io.File;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.List;
 
 public class PCAPFileParser extends AbstractParser implements Parser {
 
@@ -22,8 +23,7 @@ public class PCAPFileParser extends AbstractParser implements Parser {
         this(new File(filepath));
     }
 
-    @Override
-    public void run() {
+    public List<Packet> readPackets() {
         final PcapHandle handle;
         final ArrayList<Packet> packets = new ArrayList<>();
         try {
@@ -61,5 +61,11 @@ public class PCAPFileParser extends AbstractParser implements Parser {
         } catch (PcapNativeException | NotOpenException | InterruptedException e) {
             e.printStackTrace();
         }
+        return packets;
+    }
+
+    @Override
+    public void run() {
+        fileParsedListener.parsed(readPackets());
     }
 }
