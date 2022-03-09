@@ -1,4 +1,4 @@
-package packet;
+package packet.parser;
 
 public class FileParserFactory {
     public static Parser produce(String filepath) {

@@ -1,8 +1,11 @@
-package packet;
+package packet.parser;
+
+import packet.Packet;
 
 import java.io.*;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -19,7 +22,7 @@ public class TXTFileParser extends AbstractParser implements Parser {
         this.file = file;
     }
 
-    public List<Packet> readPackets() {
+    public List<Packet> getPackets() {
         List<Packet> localParsedPacketList = new ArrayList<>();
         Pattern destSourcePattern = Pattern.compile("from ([^;]*) to ([^;]*)");
 
@@ -30,14 +33,13 @@ public class TXTFileParser extends AbstractParser implements Parser {
                     if (matcher.find()) {
                         Packet parsedPacket = new Packet(fileLine, matcher);
                         localParsedPacketList.add(parsedPacket);
-                        packetParsedListener.parsed(parsedPacket);
                     }
                 }
             } catch (ParseException ignored) {
 
             }
         });
-        return localParsedPacketList;
+        return Collections.unmodifiableList(localParsedPacketList);
     }
 
     private List<String> readStrings() {
@@ -53,9 +55,5 @@ public class TXTFileParser extends AbstractParser implements Parser {
         }
 
         return result;
-    }
-
-    public void run() {
-        fileParsedListener.parsed(readPackets());
     }
 }

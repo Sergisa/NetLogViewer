@@ -1,4 +1,6 @@
-package packet;
+package packet.parser;
+
+import packet.Packet;
 
 import java.util.List;
 

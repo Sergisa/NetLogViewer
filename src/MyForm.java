@@ -1,7 +1,8 @@
 import com.formdev.flatlaf.extras.FlatSVGIcon;
-import packet.FileParserFactory;
 import packet.Packet;
-import packet.Parser;
+import packet.parser.FileParserFactory;
+import packet.parser.Parser;
+import packet.parser.ParserManager;
 import packetListModel.ListRowView;
 
 import javax.swing.*;
@@ -12,6 +13,7 @@ import java.util.List;
 
 public class MyForm extends JFrame {
     private final DefaultListModel<Packet> packetListViewModel = new DefaultListModel<>();
+    ParserManager parserManager;
     private JPanel panel;
     private JLabel sourceLabel;
     private JLabel destLabel;
@@ -79,9 +81,10 @@ public class MyForm extends JFrame {
     }
 
     private void updateParser(Parser parser) {
-        parser.setFileParsedListener(this::fileParsed);
-        parser.setPacketParsedListener(this::packetParsed);
-        parser.run();
+        ParserManager parserManager = new ParserManager(parser);
+        parserManager.setFileParsedListener(this::fileParsed);
+        parserManager.setPacketParsedListener(this::packetParsed);
+        parserManager.startParse();
     }
 
     private void updateViews(Packet packet) {

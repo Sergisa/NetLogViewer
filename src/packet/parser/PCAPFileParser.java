@@ -1,4 +1,4 @@
-package packet;
+package packet.parser;
 
 import org.pcap4j.core.NotOpenException;
 import org.pcap4j.core.PcapHandle;
@@ -7,10 +7,12 @@ import org.pcap4j.core.Pcaps;
 import org.pcap4j.packet.IpPacket;
 import org.pcap4j.packet.IpV4Packet;
 import org.pcap4j.packet.IpV6Packet;
+import packet.Packet;
 
 import java.io.File;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class PCAPFileParser extends AbstractParser implements Parser {
@@ -23,7 +25,7 @@ public class PCAPFileParser extends AbstractParser implements Parser {
         this(new File(filepath));
     }
 
-    public List<Packet> readPackets() {
+    public List<Packet> getPackets() {
         final PcapHandle handle;
         final ArrayList<Packet> packets = new ArrayList<>();
         try {
@@ -40,7 +42,6 @@ public class PCAPFileParser extends AbstractParser implements Parser {
                                 v4Header.getDstAddr().getHostAddress()
                         );
                         packets.add(p);
-                        packetParsedListener.parsed(p);
                     } else if (packet.get(IpV6Packet.class) != null) {
                         IpPacket.IpHeader v6Header = packet.get(IpV6Packet.class).getHeader();
                         Packet p = new Packet(
@@ -51,21 +52,14 @@ public class PCAPFileParser extends AbstractParser implements Parser {
                                 v6Header.getDstAddr().getHostAddress()
                         );
                         packets.add(p);
-                        packetParsedListener.parsed(p);
                     }
                 } catch (ParseException ignored) {
 
                 }
             });
-            fileParsedListener.parsed(packets);
         } catch (PcapNativeException | NotOpenException | InterruptedException e) {
             e.printStackTrace();
         }
-        return packets;
-    }
-
-    @Override
-    public void run() {
-        fileParsedListener.parsed(readPackets());
+        return Collections.unmodifiableList(packets);
     }
 }
