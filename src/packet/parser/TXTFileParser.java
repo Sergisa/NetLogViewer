@@ -8,21 +8,20 @@ import java.util.Collections;
 import java.util.List;
 
 public class TXTFileParser extends AbstractParser implements Parser {
-
     public TXTFileParser(String filepath) {
-        this(new File(filepath));
+        super(filepath);
     }
 
     public TXTFileParser(File file) {
-        this.file = file;
+        super(file);
     }
 
     public void getPackets() {
         readStrings().forEach(fileLine -> {
             if (!fileLine.contains("IP traffic monitor started")) {
-                Packet parsedPacket = Packet.Builder.aPacket().fromString(fileLine).build();
+                Packet.Builder parsedPacketBuilder = Packet.Builder.aPacket().fromString(fileLine);
                 if (packetParsedListener != null) {
-                    packetParsedListener.parsed(parsedPacket);
+                    packetParsedListener.parsed(parsedPacketBuilder.build());
                 }
             }
         });

@@ -45,7 +45,8 @@ public class Packet {
     @Override
     public String toString() {
         return "Packet{" +
-                "bytes=" + bytes +
+                "date=" + date +
+                ", bytes=" + bytes +
                 ", type=" + type +
                 ", source='" + source + '\'' +
                 ", destination='" + destination + '\'' +

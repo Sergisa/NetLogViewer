@@ -8,4 +8,8 @@ public interface Parser {
     void setPacketParsedListener(OnPacketParsedListener packetParsedListener);
 
     File getFile();
+
+    boolean isResolveDomainAddress();
+
+    void setResolveDomainAddress(boolean resolveDomainAddress);
 }

@@ -11,7 +11,7 @@ public class Main {
         System.setProperty("cache.lastFile", file);
         SwingUtilities.invokeLater(() -> {
             MyForm form = new MyForm(FileParserFactory.produce(file));
-            form.setSize(500, 500);
+            form.setSize(500, 550);
         });
     }
 }

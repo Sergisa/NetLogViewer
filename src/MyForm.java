@@ -4,6 +4,7 @@ import packet.parser.FileParserFactory;
 import packet.parser.Parser;
 import packet.parser.ParserManager;
 import packetListModel.ListRowView;
+import ui.CheckBoxAccessory;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -13,6 +14,7 @@ import java.io.Serial;
 import java.util.List;
 
 public class MyForm extends JFrame {
+    private static ParserTask parserTask;
     private final DefaultListModel<Packet> packetListViewModel = new DefaultListModel<>();
     private JPanel panel;
     private JLabel sourceLabel;
@@ -26,7 +28,6 @@ public class MyForm extends JFrame {
         this.parser = p;
         setVisible(true);
         setContentPane(panel);
-        setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         packetListView.setCellRenderer(new ListRowView());
         packetListView.addListSelectionListener(e -> {
@@ -38,7 +39,6 @@ public class MyForm extends JFrame {
         JMenuBar menuBar = new JMenuBar();
         menuBar.add(createFileMenu());
         setJMenuBar(menuBar);
-        pack();
         updateParser(parser);
     }
 
@@ -56,12 +56,16 @@ public class MyForm extends JFrame {
 
         open.addActionListener(actionEvent -> {
             JFileChooser chooser = new JFileChooser();
+            chooser.setAccessory(new CheckBoxAccessory("Resolve domain"));
             chooser.setCurrentDirectory(parser.getFile());
-            packetListViewModel.removeAllElements();
             int res = chooser.showDialog(null, "Открыть файл");
             if (res == JFileChooser.APPROVE_OPTION) {
+                packetListViewModel.removeAllElements();
+                parserTask.cancel(true);
                 File chosenFile = chooser.getSelectedFile();
                 parser = FileParserFactory.produce(chosenFile.getPath());
+                CheckBoxAccessory resolveDomainCheckBox = (CheckBoxAccessory) chooser.getAccessory();
+                parser.setResolveDomainAddress(resolveDomainCheckBox.isBoxSelected());
                 updateParser(parser);
             }
         });
@@ -69,7 +73,7 @@ public class MyForm extends JFrame {
     }
 
     private void updateParser(Parser parser) {
-        ParserTask parserTask = new ParserTask(new ParserManager(parser));
+        parserTask = new ParserTask(new ParserManager(parser));
         parserTask.addPropertyChangeListener(this::propertyChange);
         parserTask.execute();
     }
@@ -99,6 +103,7 @@ public class MyForm extends JFrame {
         }
 
         public void actionPerformed(ActionEvent e) {
+            parserTask.cancel(true);
             System.exit(0);
         }
     }
@@ -113,7 +118,7 @@ public class MyForm extends JFrame {
         }
 
         private void packetParsed(Packet packet) {
-            System.out.println("packetParsed");
+            System.out.println("packetParsed" + packet);
             SwingUtilities.invokeLater(() -> packetListViewModel.addElement(packet));
         }
 
@@ -122,7 +127,6 @@ public class MyForm extends JFrame {
 
         @Override
         public Void doInBackground() {
-            System.out.println("doing");
             loadingPanel.start();
             manager.startParse();
             return null;
