@@ -41,6 +41,7 @@ class LoadingPanel extends JPanel {
 
     public void start() {
         loadingIconTimer.start();
+        setVisible(true);
     }
 
     public void reset() {
@@ -49,5 +50,14 @@ class LoadingPanel extends JPanel {
 
     public void stop() {
         loadingIconTimer.stop();
+        setVisible(false);
+    }
+
+    public void setText(String text) {
+        loadingLabel.setText(text);
+    }
+
+    public void setIcon(Icon icon) {
+        loadingLabel.setIcon(icon);
     }
 }

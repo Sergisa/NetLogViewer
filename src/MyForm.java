@@ -38,7 +38,6 @@ public class MyForm extends JFrame {
         JMenuBar menuBar = new JMenuBar();
         menuBar.add(createFileMenu());
         setJMenuBar(menuBar);
-        //оптимальный размер окна
         pack();
         updateParser(parser);
     }
@@ -116,37 +115,27 @@ public class MyForm extends JFrame {
         private void packetParsed(Packet packet) {
             System.out.println("packetParsed");
             SwingUtilities.invokeLater(() -> packetListViewModel.addElement(packet));
-            //publish(packet);
         }
 
         private void fileParsed() {
         }
 
-        /*
-         * Main task. Executed in background thread.
-         */
         @Override
         public Void doInBackground() {
             System.out.println("doing");
-            loadingPanel.setVisible(true);
             loadingPanel.start();
             manager.startParse();
             return null;
         }
 
-        /*
-         * Executed in event dispatching thread
-         */
         @Override
         public void done() {
-            System.out.println("DONE");
             loadingPanel.stop();
-            loadingPanel.setVisible(false);
         }
 
         @Override
         protected void process(List<Packet> chunks) {
-            //super.process(chunks);
+            super.process(chunks);
         }
     }
 }
