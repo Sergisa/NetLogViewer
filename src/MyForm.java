@@ -7,13 +7,13 @@ import packetListModel.ListRowView;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
+import java.beans.PropertyChangeEvent;
 import java.io.File;
 import java.io.Serial;
 import java.util.List;
 
 public class MyForm extends JFrame {
     private final DefaultListModel<Packet> packetListViewModel = new DefaultListModel<>();
-    ParserManager parserManager;
     private JPanel panel;
     private JLabel sourceLabel;
     private JLabel destLabel;
@@ -34,24 +34,13 @@ public class MyForm extends JFrame {
                 updateViews(packetListView.getSelectedValue());
             }
         });
-        updateParser(parser);
         packetListView.setModel(packetListViewModel);
         JMenuBar menuBar = new JMenuBar();
         menuBar.add(createFileMenu());
         setJMenuBar(menuBar);
         //оптимальный размер окна
         pack();
-    }
-
-    private void fileParsed(List<Packet> parsedPackets) {
-        packetListViewModel.addAll(parsedPackets);
-        loadingPanel.stop();
-        loadingPanel.setVisible(false);
-    }
-
-    public void packetParsed(Packet parsedPacket) {
-        packetListViewModel.addElement(parsedPacket);
-        loadingPanel.reset();
+        updateParser(parser);
     }
 
     private JMenu createFileMenu() {
@@ -81,10 +70,13 @@ public class MyForm extends JFrame {
     }
 
     private void updateParser(Parser parser) {
-        ParserManager parserManager = new ParserManager(parser);
-        parserManager.setFileParsedListener(this::fileParsed);
-        parserManager.setPacketParsedListener(this::packetParsed);
-        parserManager.startParse();
+        ParserTask parserTask = new ParserTask(new ParserManager(parser));
+        parserTask.addPropertyChangeListener(this::propertyChange);
+        parserTask.execute();
+    }
+
+    public void propertyChange(PropertyChangeEvent evt) {
+        System.out.println(evt.getPropertyName() + "  propertyChange");
     }
 
     private void updateViews(Packet packet) {
@@ -97,7 +89,6 @@ public class MyForm extends JFrame {
         loadingPanel = new LoadingPanel();
         listLayeredPane.add(loadingPanel, JLayeredPane.PALETTE_LAYER);
         loadingPanel.setBounds(320, 10, 130, 30);
-        loadingPanel.start();
     }
 
     static class ExitAction extends AbstractAction {
@@ -110,6 +101,52 @@ public class MyForm extends JFrame {
 
         public void actionPerformed(ActionEvent e) {
             System.exit(0);
+        }
+    }
+
+    class ParserTask extends SwingWorker<Void, Packet> {
+        ParserManager manager;
+
+        public ParserTask(ParserManager manager) {
+            this.manager = manager;
+            manager.setFileParsedListener(this::fileParsed);
+            manager.setPacketParsedListener(this::packetParsed);
+        }
+
+        private void packetParsed(Packet packet) {
+            System.out.println("packetParsed");
+            SwingUtilities.invokeLater(() -> packetListViewModel.addElement(packet));
+            //publish(packet);
+        }
+
+        private void fileParsed() {
+        }
+
+        /*
+         * Main task. Executed in background thread.
+         */
+        @Override
+        public Void doInBackground() {
+            System.out.println("doing");
+            loadingPanel.setVisible(true);
+            loadingPanel.start();
+            manager.startParse();
+            return null;
+        }
+
+        /*
+         * Executed in event dispatching thread
+         */
+        @Override
+        public void done() {
+            System.out.println("DONE");
+            loadingPanel.stop();
+            loadingPanel.setVisible(false);
+        }
+
+        @Override
+        protected void process(List<Packet> chunks) {
+            //super.process(chunks);
         }
     }
 }

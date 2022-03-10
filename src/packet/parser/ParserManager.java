@@ -2,31 +2,24 @@ package packet.parser;
 
 public class ParserManager {
 
-    private final Parser parser;
     OnFileParsedListener fileParsedListener;
-    OnPacketParsedListener packetParsedListener;
-    Thread parserThread;
+    Parser parser;
 
-    public ParserManager(Parser parser) {
-        this.parser = parser;
-        parserThread = new Thread(() -> {
-            if (fileParsedListener != null) {
-                fileParsedListener.parsed(parser.getPackets());
-            }
-        });
+    public ParserManager(Parser p) {
+        parser = p;
     }
 
     public void startParse() {
-
+        parser.getPackets();
+        fileParsedListener.parsed();
     }
 
     public void setPacketParsedListener(OnPacketParsedListener packetParsedListener) {
-        this.packetParsedListener = packetParsedListener;
+        parser.setPacketParsedListener(packetParsedListener);
     }
 
     public void setFileParsedListener(OnFileParsedListener fileParsedListener) {
         this.fileParsedListener = fileParsedListener;
     }
-
 
 }

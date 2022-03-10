@@ -10,10 +10,6 @@ import org.pcap4j.packet.IpV6Packet;
 import packet.Packet;
 
 import java.io.File;
-import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 public class PCAPFileParser extends AbstractParser implements Parser {
 
@@ -25,41 +21,31 @@ public class PCAPFileParser extends AbstractParser implements Parser {
         this(new File(filepath));
     }
 
-    public List<Packet> getPackets() {
+    public void getPackets() {
         final PcapHandle handle;
-        final ArrayList<Packet> packets = new ArrayList<>();
         try {
             handle = Pcaps.openOffline(this.file.getPath());
             handle.dispatch(80, packet -> {
-                try {
-                    if (packet.get(IpV4Packet.class) != null) {
-                        IpPacket.IpHeader v4Header = packet.get(IpV4Packet.class).getHeader();
-                        Packet p = new Packet(
-                                packet.getTimestamp().toString(),
-                                packet.getPayload().length(),
-                                v4Header.getProtocol().name(),
-                                v4Header.getSrcAddr().getHostAddress(),
-                                v4Header.getDstAddr().getHostAddress()
-                        );
-                        packets.add(p);
-                    } else if (packet.get(IpV6Packet.class) != null) {
-                        IpPacket.IpHeader v6Header = packet.get(IpV6Packet.class).getHeader();
-                        Packet p = new Packet(
-                                packet.getTimestamp().toString(),
-                                packet.getPayload().length(),
-                                v6Header.getProtocol().name(),
-                                v6Header.getSrcAddr().getHostAddress(),
-                                v6Header.getDstAddr().getHostAddress()
-                        );
-                        packets.add(p);
-                    }
-                } catch (ParseException ignored) {
-
+                Packet.Builder builder = Packet.Builder.aPacket()
+                        .withDate(packet.getTimestamp().toString())
+                        .withBytes(packet.getPayload().length());
+                if (packet.get(IpV4Packet.class) != null) {
+                    IpPacket.IpHeader v4Header = packet.get(IpV4Packet.class).getHeader();
+                    builder.withType(v4Header.getProtocol().name())
+                            .withSource(v4Header.getSrcAddr().getCanonicalHostName())
+                            .withDestination(v4Header.getDstAddr().getCanonicalHostName());
+                } else if (packet.get(IpV6Packet.class) != null) {
+                    IpPacket.IpHeader v6Header = packet.get(IpV6Packet.class).getHeader();
+                    builder.withType(v6Header.getProtocol().name())
+                            .withSource(v6Header.getSrcAddr().getCanonicalHostName())
+                            .withDestination(v6Header.getDstAddr().getCanonicalHostName());
+                }
+                if (packetParsedListener != null) {
+                    packetParsedListener.parsed(builder.build());
                 }
             });
         } catch (PcapNativeException | NotOpenException | InterruptedException e) {
             e.printStackTrace();
         }
-        return Collections.unmodifiableList(packets);
     }
 }

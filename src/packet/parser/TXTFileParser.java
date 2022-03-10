@@ -3,16 +3,11 @@ package packet.parser;
 import packet.Packet;
 
 import java.io.*;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class TXTFileParser extends AbstractParser implements Parser {
-    private final int SOURCE_DEST_COLUMN_INDEX = 4;
-    private final String COLUMN_SPLITTER = "; ";
 
     public TXTFileParser(String filepath) {
         this(new File(filepath));
@@ -22,24 +17,15 @@ public class TXTFileParser extends AbstractParser implements Parser {
         this.file = file;
     }
 
-    public List<Packet> getPackets() {
-        List<Packet> localParsedPacketList = new ArrayList<>();
-        Pattern destSourcePattern = Pattern.compile("from ([^;]*) to ([^;]*)");
-
+    public void getPackets() {
         readStrings().forEach(fileLine -> {
-            try {
-                if (!fileLine.contains("IP traffic monitor started")) {
-                    Matcher matcher = destSourcePattern.matcher(fileLine.split(COLUMN_SPLITTER)[SOURCE_DEST_COLUMN_INDEX]);
-                    if (matcher.find()) {
-                        Packet parsedPacket = new Packet(fileLine, matcher);
-                        localParsedPacketList.add(parsedPacket);
-                    }
+            if (!fileLine.contains("IP traffic monitor started")) {
+                Packet parsedPacket = Packet.Builder.aPacket().fromString(fileLine).build();
+                if (packetParsedListener != null) {
+                    packetParsedListener.parsed(parsedPacket);
                 }
-            } catch (ParseException ignored) {
-
             }
         });
-        return Collections.unmodifiableList(localParsedPacketList);
     }
 
     private List<String> readStrings() {
@@ -54,6 +40,6 @@ public class TXTFileParser extends AbstractParser implements Parser {
             e.printStackTrace();
         }
 
-        return result;
+        return Collections.unmodifiableList(result);
     }
 }

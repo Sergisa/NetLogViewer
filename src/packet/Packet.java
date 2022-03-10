@@ -5,6 +5,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Packet {
     private final Date date;
@@ -13,32 +14,12 @@ public class Packet {
     private final String source;
     private final String destination;
 
-    public Packet(Date date, int bytes, Type type, String source, String destination) {
+    protected Packet(Date date, int bytes, Type type, String source, String destination) {
         this.date = date;
         this.bytes = bytes;
         this.type = type;
         this.source = source;
         this.destination = destination;
-    }
-
-    public Packet(String date, int bytes, String type, String source, String destination) throws ParseException {
-        this(
-                new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy", Locale.ENGLISH).parse(date),
-                bytes,
-                Type.build(type),
-                source,
-                destination
-        );
-    }
-
-    public Packet(String s, Matcher m) throws ParseException {
-        this(
-                s.split("; ")[0],
-                Integer.parseInt(s.split("; ")[3].replace(" bytes", "")),
-                s.split("; ")[1],
-                m.group(1),
-                m.group(2)
-        );
     }
 
     public String getSource() {
@@ -53,6 +34,14 @@ public class Packet {
         return type;
     }
 
+    public Date getDate() {
+        return date;
+    }
+
+    public int getBytes() {
+        return bytes;
+    }
+
     @Override
     public String toString() {
         return "Packet{" +
@@ -64,62 +53,95 @@ public class Packet {
     }
 
     public enum Type {
+        ICMP,
         TCP,
         UDP,
-        ICMP,
-        UNKNOWN;
-
-        static Type build(String name) {
-            return switch (name) {
-                case "UDP" -> UDP;
-                case "TCP" -> TCP;
-                case "ICMP" -> ICMP;
-                default -> UNKNOWN;
-            };
-        }
+        UNKNOWN
     }
 
-    public static final class PacketBuilder {
+    public static final class Builder {
+        private final Pattern destSourcePattern = Pattern.compile("from ([^;]*) to ([^;]*)");
         private Date date;
         private int bytes;
         private Type type;
         private String source;
         private String destination;
 
-        private PacketBuilder() {
+        public static Builder aPacket() {
+            return new Builder();
         }
 
-        public static PacketBuilder aPacket() {
-            return new PacketBuilder();
+        public Builder fromString(String packetString) {
+            final String COLUMN_SPLITTER = "; ";
+            final int DATE_COLUMN_INDEX = 0;
+            final int TYPE_COLUMN_INDEX = 1;
+            final int BYTES_COLUMN_INDEX = 3;
+            final int SOURCE_DEST_COLUMN_INDEX = 4;
+            String[] packetColumns = packetString.split(COLUMN_SPLITTER);
+            Matcher matcher = destSourcePattern.matcher(packetString.split(COLUMN_SPLITTER)[SOURCE_DEST_COLUMN_INDEX]);
+            if (matcher.find()) {
+                try {
+                    date = new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy", Locale.ENGLISH).parse(packetColumns[DATE_COLUMN_INDEX]);
+                } catch (ParseException ignored) {
+                    System.err.println("Unable to parse" + packetColumns[DATE_COLUMN_INDEX]);
+                }
+                type = Type.valueOf(packetColumns[TYPE_COLUMN_INDEX]);
+                bytes = Integer.parseInt(packetColumns[BYTES_COLUMN_INDEX].replace(" bytes", ""));
+                source = matcher.group(1);
+                destination = matcher.group(2);
+            }
+            return this;
         }
 
-        public PacketBuilder withDate(Date date) {
+        public Builder withDate(String date, String pattern) {
+            try {
+                return withDate(new SimpleDateFormat(pattern, Locale.ENGLISH).parse(date));
+            } catch (ParseException ignored) {
+                System.err.println("Unable to parse " + date);
+                return this;
+            }
+        }
+
+        public Builder withDate(Date date) {
             this.date = date;
             return this;
         }
 
-        public PacketBuilder withBytes(int bytes) {
+        public Builder withDate(String date) {
+            return withDate(date, "EEE MMM d HH:mm:ss yyyy");
+        }
+
+        public Builder withBytes(int bytes) {
             this.bytes = bytes;
             return this;
         }
 
-        public PacketBuilder withType(Type type) {
+        public Builder withType(Type type) {
             this.type = type;
             return this;
         }
 
-        public PacketBuilder withSource(String source) {
+        public Builder withType(String type) {
+            return withType(Type.valueOf(type));
+        }
+
+        public Builder withSource(String source) {
             this.source = source;
             return this;
         }
 
-        public PacketBuilder withDestination(String destination) {
+        public Builder withDestination(String destination) {
             this.destination = destination;
             return this;
         }
 
-        public PacketBuilder but() {
-            return aPacket().withDate(date).withBytes(bytes).withType(type).withSource(source).withDestination(destination);
+        public Builder but() {
+            return aPacket()
+                    .withDate(date)
+                    .withBytes(bytes)
+                    .withType(type)
+                    .withSource(source)
+                    .withDestination(destination);
         }
 
         public Packet build() {

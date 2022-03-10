@@ -1,5 +1,5 @@
 import com.formdev.flatlaf.FlatDarculaLaf;
-import packet.FileParserFactory;
+import packet.parser.FileParserFactory;
 
 import javax.swing.*;
 
