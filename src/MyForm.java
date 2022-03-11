@@ -58,7 +58,7 @@ public class MyForm extends JFrame {
             JFileChooser chooser = new JFileChooser();
             chooser.setAccessory(new CheckBoxAccessory("Resolve domain"));
             chooser.setCurrentDirectory(parser.getFile());
-            int res = chooser.showDialog(null, "Открыть файл");
+            int res = chooser.showDialog(this, "Открыть файл");
             if (res == JFileChooser.APPROVE_OPTION) {
                 packetListViewModel.removeAllElements();
                 parserTask.cancel(true);
