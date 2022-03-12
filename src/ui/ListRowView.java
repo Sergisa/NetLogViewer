@@ -1,4 +1,4 @@
-package packetListModel;
+package ui;
 
 import packet.Packet;
 

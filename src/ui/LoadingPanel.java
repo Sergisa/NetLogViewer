@@ -1,3 +1,5 @@
+package ui;
+
 import com.formdev.flatlaf.extras.FlatSVGIcon;
 
 import javax.swing.*;
@@ -22,6 +24,7 @@ class LoadingPanel extends JPanel {
         setOpaque(true);
         setBackground(null);
         InitIcon();
+        setVisible(false);
     }
 
     LoadingPanel() {

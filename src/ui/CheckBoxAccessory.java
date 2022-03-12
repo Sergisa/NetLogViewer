@@ -10,7 +10,7 @@ public class CheckBoxAccessory extends JComponent {
     int preferredWidth = 150;
     int preferredHeight = 100;
     int checkBoxPosX = 5;
-    int checkBoxPosY = 20;
+    int checkBoxPosY = 5;
     int checkBoxWidth = preferredWidth;
     int checkBoxHeight = 20;
 

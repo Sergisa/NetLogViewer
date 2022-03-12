@@ -21,6 +21,7 @@ public class TXTFileParser extends AbstractParser implements Parser {
             if (!fileLine.contains("IP traffic monitor started")) {
                 Packet.Builder parsedPacketBuilder = Packet.Builder.aPacket().fromString(fileLine);
                 if (packetParsedListener != null) {
+                    //TODO: try to resolve domain name for IPAddress
                     packetParsedListener.parsed(parsedPacketBuilder.build());
                 }
             }

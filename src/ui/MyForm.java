@@ -1,17 +1,16 @@
+package ui;
+
 import com.formdev.flatlaf.extras.FlatSVGIcon;
 import packet.Packet;
 import packet.parser.FileParserFactory;
 import packet.parser.Parser;
 import packet.parser.ParserManager;
-import packetListModel.ListRowView;
-import ui.CheckBoxAccessory;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeEvent;
 import java.io.File;
 import java.io.Serial;
-import java.util.List;
 
 public class MyForm extends JFrame {
     private static ParserTask parserTask;
@@ -21,11 +20,14 @@ public class MyForm extends JFrame {
     private JLabel destLabel;
     private JList<Packet> packetListView;
     private JLayeredPane listLayeredPane;
+    private JLabel dateLabel;
+    private JButton openFileButton;
+    private JButton reloadData;
     private Parser parser;
     private LoadingPanel loadingPanel;
 
-    public MyForm(Parser p) {
-        this.parser = p;
+    public MyForm() {
+        setUndecorated(true);
         setVisible(true);
         setContentPane(panel);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -39,6 +41,12 @@ public class MyForm extends JFrame {
         JMenuBar menuBar = new JMenuBar();
         menuBar.add(createFileMenu());
         setJMenuBar(menuBar);
+        openFileButton.addActionListener(e -> openFileDialog());
+    }
+
+    public MyForm(Parser p) {
+        this();
+        this.parser = p;
         updateParser(parser);
     }
 
@@ -54,22 +62,26 @@ public class MyForm extends JFrame {
         file.addSeparator();
         file.add(exit);
 
-        open.addActionListener(actionEvent -> {
-            JFileChooser chooser = new JFileChooser();
-            chooser.setAccessory(new CheckBoxAccessory("Resolve domain"));
-            chooser.setCurrentDirectory(parser.getFile());
-            int res = chooser.showDialog(this, "Открыть файл");
-            if (res == JFileChooser.APPROVE_OPTION) {
-                packetListViewModel.removeAllElements();
-                parserTask.cancel(true);
-                File chosenFile = chooser.getSelectedFile();
-                parser = FileParserFactory.produce(chosenFile.getPath());
-                CheckBoxAccessory resolveDomainCheckBox = (CheckBoxAccessory) chooser.getAccessory();
-                parser.setResolveDomainAddress(resolveDomainCheckBox.isBoxSelected());
-                updateParser(parser);
-            }
-        });
+        open.addActionListener(actionEvent -> openFileDialog());
         return file;
+    }
+
+    private void openFileDialog() {
+        JFileChooser chooser = new JFileChooser();
+        chooser.setAccessory(new CheckBoxAccessory("Resolve domain"));
+        if (parser != null) {
+            chooser.setCurrentDirectory(parser.getFile());
+        }
+        int res = chooser.showDialog(this, "Открыть файл");
+        if (res == JFileChooser.APPROVE_OPTION) {
+            packetListViewModel.removeAllElements();
+            parserTask.cancel(true);/* FIXME: Cannot invoke "ui.MyForm$ParserTask.cancel(boolean)" because "ui.MyForm.parserTask" is null when closing */
+            File chosenFile = chooser.getSelectedFile();
+            parser = FileParserFactory.produce(chosenFile.getPath());
+            CheckBoxAccessory resolveDomainCheckBox = (CheckBoxAccessory) chooser.getAccessory();
+            parser.setResolveDomainAddress(resolveDomainCheckBox.isBoxSelected());
+            updateParser(parser);
+        }
     }
 
     private void updateParser(Parser parser) {
@@ -85,9 +97,12 @@ public class MyForm extends JFrame {
     private void updateViews(Packet packet) {
         destLabel.setText(packet.getDestination());
         sourceLabel.setText(packet.getSource());
+        dateLabel.setText(packet.getDate().toString());
     }
 
     private void createUIComponents() {
+        openFileButton = new JButton(new FlatSVGIcon("menu-open.svg"));
+        reloadData = new JButton(new FlatSVGIcon("refresh.svg"));
         listLayeredPane = new JLayeredPane();
         loadingPanel = new LoadingPanel();
         listLayeredPane.add(loadingPanel, JLayeredPane.PALETTE_LAYER);
@@ -103,7 +118,7 @@ public class MyForm extends JFrame {
         }
 
         public void actionPerformed(ActionEvent e) {
-            parserTask.cancel(true);
+            parserTask.cancel(true); /* FIXME: Cannot invoke "ui.MyForm$ParserTask.cancel(boolean)" because "ui.MyForm.parserTask" is null when closing */
             System.exit(0);
         }
     }
@@ -118,11 +133,12 @@ public class MyForm extends JFrame {
         }
 
         private void packetParsed(Packet packet) {
-            System.out.println("packetParsed" + packet);
+            publish(packet);
             SwingUtilities.invokeLater(() -> packetListViewModel.addElement(packet));
         }
 
         private void fileParsed() {
+            loadingPanel.stop();
         }
 
         @Override
@@ -130,16 +146,6 @@ public class MyForm extends JFrame {
             loadingPanel.start();
             manager.startParse();
             return null;
-        }
-
-        @Override
-        public void done() {
-            loadingPanel.stop();
-        }
-
-        @Override
-        protected void process(List<Packet> chunks) {
-            super.process(chunks);
         }
     }
 }

@@ -1,5 +1,5 @@
 import com.formdev.flatlaf.FlatDarculaLaf;
-import packet.parser.FileParserFactory;
+import ui.MyForm;
 
 import javax.swing.*;
 
@@ -8,9 +8,8 @@ public class Main {
 
     public static void main(String[] args) {
         FlatDarculaLaf.install();
-        System.setProperty("cache.lastFile", file);
         SwingUtilities.invokeLater(() -> {
-            MyForm form = new MyForm(FileParserFactory.produce(file));
+            MyForm form = new MyForm();
             form.setSize(500, 550);
         });
     }

@@ -2,7 +2,7 @@ package test;
 
 import com.formdev.flatlaf.FlatDarculaLaf;
 import packet.Packet;
-import packetListModel.ListRowView;
+import ui.ListRowView;
 
 import javax.swing.*;
 import java.awt.*;
