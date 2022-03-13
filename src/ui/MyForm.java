@@ -8,7 +8,6 @@ import packet.parser.ParserManager;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
-import java.beans.PropertyChangeEvent;
 import java.io.File;
 import java.io.Serial;
 
@@ -30,6 +29,9 @@ public class MyForm extends JFrame {
         setUndecorated(true);
         setVisible(true);
         setContentPane(panel);
+        ComponentDragListener frameDragListener = new ComponentDragListener(this);
+        addMouseListener(frameDragListener);
+        addMouseMotionListener(frameDragListener);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         packetListView.setCellRenderer(new ListRowView());
         packetListView.addListSelectionListener(e -> {
@@ -40,7 +42,13 @@ public class MyForm extends JFrame {
         packetListView.setModel(packetListViewModel);
         JMenuBar menuBar = new JMenuBar();
         menuBar.add(createFileMenu());
+        JButton closeMenuButton = new JButton();
+        closeMenuButton.addActionListener(new ExitAction());
+        closeMenuButton.setIcon(new FlatSVGIcon("close.svg"));
+        closeMenuButton.setToolTipText("Закрыть");
+        menuBar.add(closeMenuButton);
         setJMenuBar(menuBar);
+        reloadData.addActionListener(this::reloadData);
         openFileButton.addActionListener(e -> openFileDialog());
     }
 
@@ -50,18 +58,21 @@ public class MyForm extends JFrame {
         updateParser(parser);
     }
 
+    private void reloadData(ActionEvent actionEvent) {
+
+    }
+
     private JMenu createFileMenu() {
         JMenuItem exit, open;
         JMenu file = new JMenu("Файл");
         open = new JMenuItem("Открыть", new FlatSVGIcon("menu-open.svg"));
-        open.setIconTextGap(10);
-        exit = new JMenuItem(new ExitAction());
+        exit = new JMenuItem(new ExitAction("Выход"));
         exit.setIconTextGap(10);
         exit.setIcon(new FlatSVGIcon("close.svg"));
         file.add(open);
         file.addSeparator();
         file.add(exit);
-
+        open.setIconTextGap(10);
         open.addActionListener(actionEvent -> openFileDialog());
         return file;
     }
@@ -75,7 +86,7 @@ public class MyForm extends JFrame {
         int res = chooser.showDialog(this, "Открыть файл");
         if (res == JFileChooser.APPROVE_OPTION) {
             packetListViewModel.removeAllElements();
-            parserTask.cancel(true);/* FIXME: Cannot invoke "ui.MyForm$ParserTask.cancel(boolean)" because "ui.MyForm.parserTask" is null when closing */
+            if (parserTask != null) parserTask.cancel(true);
             File chosenFile = chooser.getSelectedFile();
             parser = FileParserFactory.produce(chosenFile.getPath());
             CheckBoxAccessory resolveDomainCheckBox = (CheckBoxAccessory) chooser.getAccessory();
@@ -86,12 +97,7 @@ public class MyForm extends JFrame {
 
     private void updateParser(Parser parser) {
         parserTask = new ParserTask(new ParserManager(parser));
-        parserTask.addPropertyChangeListener(this::propertyChange);
         parserTask.execute();
-    }
-
-    public void propertyChange(PropertyChangeEvent evt) {
-        System.out.println(evt.getPropertyName() + "  propertyChange");
     }
 
     private void updateViews(Packet packet) {
@@ -114,11 +120,15 @@ public class MyForm extends JFrame {
         private static final long serialVersionUID = 1L;
 
         ExitAction() {
-            putValue(NAME, "Выход");
+
+        }
+
+        ExitAction(String name) {
+            putValue(NAME, name);
         }
 
         public void actionPerformed(ActionEvent e) {
-            parserTask.cancel(true); /* FIXME: Cannot invoke "ui.MyForm$ParserTask.cancel(boolean)" because "ui.MyForm.parserTask" is null when closing */
+            if (parserTask != null) parserTask.cancel(true);
             System.exit(0);
         }
     }
