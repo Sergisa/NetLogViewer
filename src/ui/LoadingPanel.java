@@ -7,7 +7,7 @@ import java.awt.*;
 
 class LoadingPanel extends JPanel {
 
-    private final FlatSVGIcon loadingIcon = new FlatSVGIcon("refresh.svg");
+    private final FlatSVGIcon loadingIcon = new FlatSVGIcon("refresh_dark.svg");
     private final JLabel loadingLabel;
     private int loadingCounter = 0;
     private Timer loadingIconTimer;

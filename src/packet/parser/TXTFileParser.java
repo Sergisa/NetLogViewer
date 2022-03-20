@@ -3,9 +3,14 @@ package packet.parser;
 import packet.Packet;
 
 import java.io.*;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class TXTFileParser extends AbstractParser implements Parser {
     public TXTFileParser(String filepath) {
@@ -16,30 +21,81 @@ public class TXTFileParser extends AbstractParser implements Parser {
         super(file);
     }
 
-    public void getPackets() {
-        readStrings().forEach(fileLine -> {
-            if (!fileLine.contains("IP traffic monitor started")) {
-                Packet.Builder parsedPacketBuilder = Packet.Builder.aPacket().fromString(fileLine);
-                if (packetParsedListener != null) {
-                    //TODO: try to resolve domain name for IPAddress
-                    packetParsedListener.parsed(parsedPacketBuilder.build());
-                }
-            }
-        });
+    public TXTFileParser() {
+        super();
     }
 
-    private List<String> readStrings() {
-        List<String> result = new ArrayList<>();
+    public List<Packet> startParse() {
+        InputStreamReader inputStreamReader = null;
         try {
-            InputStreamReader inputStreamReader = new InputStreamReader(new FileInputStream(this.file));
-            BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-            while (bufferedReader.ready()) {
-                result.add(bufferedReader.readLine());
-            }
-        } catch (IOException e) {
+            inputStreamReader = new InputStreamReader(new FileInputStream(this.file));
+        } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
 
+        return readStrings(new BufferedReader(inputStreamReader));
+    }
+
+    public List<Packet> readStrings(String strings) {
+        StringReader sr = new StringReader(strings);
+        BufferedReader br = new BufferedReader(sr);
+        return readStrings(br);
+    }
+
+    public List<Packet> readStrings(BufferedReader reader) {
+        List<Packet> result = new ArrayList<>();
+        String line;
+        try {
+            while ((line = reader.readLine()) != null) {
+                try {
+                    result.add(parseStep(line));
+                } catch (FileParserException e) {
+                    System.err.println(e.getMessage());
+                }
+            }
+            if (fileParsedListener != null) fileParsedListener.parsed();
+            reader.close();
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+        }
         return Collections.unmodifiableList(result);
+    }
+
+    public Packet parseStep(String line) throws FileParserException {
+        Packet.Builder parsedPacketBuilder = Packet.Builder.aPacket();
+        final Pattern destSourcePattern = Pattern.compile("from ([^;]*) to ([^;]*)");
+        final String COLUMN_SPLITTER = "; ";
+        final int DATE_COLUMN_INDEX = 0;
+        final int TYPE_COLUMN_INDEX = 1;
+        final int BYTES_COLUMN_INDEX = 3;
+        final int SOURCE_DEST_COLUMN_INDEX = 4;
+
+        //TODO: try to resolve domain name for IPAddress
+        try {
+            String[] packetColumns = line.split(COLUMN_SPLITTER);
+            Matcher matcher = destSourcePattern.matcher(line.split(COLUMN_SPLITTER)[SOURCE_DEST_COLUMN_INDEX]);
+            if (matcher.find()) {
+                try {
+                    parsedPacketBuilder.withDate(
+                            new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy", Locale.ENGLISH)
+                                    .parse(packetColumns[DATE_COLUMN_INDEX])
+                    );
+                } catch (ParseException ignored) {
+                    throw new FileParserException("Unable to parse date: " + packetColumns[DATE_COLUMN_INDEX]);
+                }
+                parsedPacketBuilder.withType(packetColumns[TYPE_COLUMN_INDEX])
+                        .withBytes(packetColumns[BYTES_COLUMN_INDEX].replace(" bytes", ""))
+                        .withSource(matcher.group(1))
+                        .withDestination(matcher.group(2));
+            }
+            if (packetParsedListener != null) {
+                packetParsedListener.parsed(parsedPacketBuilder.build());
+            }
+        } catch (NullPointerException e) {
+            throw new FileParserException("Line is Empty");
+        } catch (ArrayIndexOutOfBoundsException e) {
+            throw new FileParserException("Cannot parse line: " + line);
+        }
+        return parsedPacketBuilder.build();
     }
 }

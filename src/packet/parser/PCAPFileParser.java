@@ -10,6 +10,7 @@ import org.pcap4j.packet.IpV6Packet;
 import packet.Packet;
 
 import java.io.File;
+import java.util.List;
 
 public class PCAPFileParser extends AbstractParser implements Parser {
     public PCAPFileParser(String filepath) {
@@ -20,7 +21,7 @@ public class PCAPFileParser extends AbstractParser implements Parser {
         super(file);
     }
 
-    public void getPackets() {
+    public List<Packet> startParse() {
         final PcapHandle handle;
         try {
             handle = Pcaps.openOffline(this.file.getPath());
@@ -54,5 +55,6 @@ public class PCAPFileParser extends AbstractParser implements Parser {
         } catch (PcapNativeException | NotOpenException | InterruptedException e) {
             e.printStackTrace();
         }
+        return null;
     }
 }

@@ -4,8 +4,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class Packet {
     private final Date date;
@@ -53,6 +51,30 @@ public class Packet {
                 '}';
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Packet packet = (Packet) o;
+
+        if (bytes != packet.bytes) return false;
+        if (!date.equals(packet.date)) return false;
+        if (type != packet.type) return false;
+        if (!source.equals(packet.source)) return false;
+        return destination.equals(packet.destination);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = date.hashCode();
+        result = 31 * result + bytes;
+        result = 31 * result + type.hashCode();
+        result = 31 * result + source.hashCode();
+        result = 31 * result + destination.hashCode();
+        return result;
+    }
+
     public enum Type {
         ICMP,
         TCP,
@@ -61,7 +83,6 @@ public class Packet {
     }
 
     public static final class Builder {
-        private final Pattern destSourcePattern = Pattern.compile("from ([^;]*) to ([^;]*)");
         private Date date;
         private int bytes;
         private Type type;
@@ -70,28 +91,6 @@ public class Packet {
 
         public static Builder aPacket() {
             return new Builder();
-        }
-
-        public Builder fromString(String packetString) {
-            final String COLUMN_SPLITTER = "; ";
-            final int DATE_COLUMN_INDEX = 0;
-            final int TYPE_COLUMN_INDEX = 1;
-            final int BYTES_COLUMN_INDEX = 3;
-            final int SOURCE_DEST_COLUMN_INDEX = 4;
-            String[] packetColumns = packetString.split(COLUMN_SPLITTER);
-            Matcher matcher = destSourcePattern.matcher(packetString.split(COLUMN_SPLITTER)[SOURCE_DEST_COLUMN_INDEX]);
-            if (matcher.find()) {
-                try {
-                    date = new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy", Locale.ENGLISH).parse(packetColumns[DATE_COLUMN_INDEX]);
-                } catch (ParseException ignored) {
-                    System.err.println("Unable to parse" + packetColumns[DATE_COLUMN_INDEX]);
-                }
-                type = Type.valueOf(packetColumns[TYPE_COLUMN_INDEX]);
-                bytes = Integer.parseInt(packetColumns[BYTES_COLUMN_INDEX].replace(" bytes", ""));
-                source = matcher.group(1);
-                destination = matcher.group(2);
-            }
-            return this;
         }
 
         public Builder withDate(String date, String pattern) {
@@ -110,6 +109,10 @@ public class Packet {
 
         public Builder withDate(String date) {
             return withDate(date, "EEE MMM d HH:mm:ss yyyy");
+        }
+
+        public Builder withBytes(String bytes) {
+            return withBytes(Integer.parseInt(bytes));
         }
 
         public Builder withBytes(int bytes) {

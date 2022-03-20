@@ -4,7 +4,6 @@ import com.formdev.flatlaf.extras.FlatSVGIcon;
 import packet.Packet;
 import packet.parser.FileParserFactory;
 import packet.parser.Parser;
-import packet.parser.ParserManager;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -29,6 +28,7 @@ public class MyForm extends JFrame {
         setUndecorated(true);
         setVisible(true);
         setContentPane(panel);
+        setLocationRelativeTo(null);
         ComponentDragListener frameDragListener = new ComponentDragListener(this);
         addMouseListener(frameDragListener);
         addMouseMotionListener(frameDragListener);
@@ -42,11 +42,6 @@ public class MyForm extends JFrame {
         packetListView.setModel(packetListViewModel);
         JMenuBar menuBar = new JMenuBar();
         menuBar.add(createFileMenu());
-        JButton closeMenuButton = new JButton();
-        closeMenuButton.addActionListener(new ExitAction());
-        closeMenuButton.setIcon(new FlatSVGIcon("close.svg"));
-        closeMenuButton.setToolTipText("Закрыть");
-        menuBar.add(closeMenuButton);
         setJMenuBar(menuBar);
         reloadData.addActionListener(this::reloadData);
         openFileButton.addActionListener(e -> openFileDialog());
@@ -65,10 +60,10 @@ public class MyForm extends JFrame {
     private JMenu createFileMenu() {
         JMenuItem exit, open;
         JMenu file = new JMenu("Файл");
-        open = new JMenuItem("Открыть", new FlatSVGIcon("menu-open.svg"));
+        open = new JMenuItem("Открыть", new FlatSVGIcon("menu-open_dark.svg"));
         exit = new JMenuItem(new ExitAction("Выход"));
         exit.setIconTextGap(10);
-        exit.setIcon(new FlatSVGIcon("close.svg"));
+        exit.setIcon(new FlatSVGIcon("closeDarkGrey.svg"));
         file.add(open);
         file.addSeparator();
         file.add(exit);
@@ -78,6 +73,7 @@ public class MyForm extends JFrame {
     }
 
     private void openFileDialog() {
+
         JFileChooser chooser = new JFileChooser();
         chooser.setAccessory(new CheckBoxAccessory("Resolve domain"));
         if (parser != null) {
@@ -96,7 +92,7 @@ public class MyForm extends JFrame {
     }
 
     private void updateParser(Parser parser) {
-        parserTask = new ParserTask(new ParserManager(parser));
+        parserTask = new ParserTask(parser);
         parserTask.execute();
     }
 
@@ -107,7 +103,7 @@ public class MyForm extends JFrame {
     }
 
     private void createUIComponents() {
-        openFileButton = new JButton(new FlatSVGIcon("menu-open.svg"));
+        openFileButton = new JButton(new FlatSVGIcon("menu-open_dark.svg"));
         reloadData = new JButton(new FlatSVGIcon("refresh.svg"));
         listLayeredPane = new JLayeredPane();
         loadingPanel = new LoadingPanel();
@@ -134,12 +130,12 @@ public class MyForm extends JFrame {
     }
 
     class ParserTask extends SwingWorker<Void, Packet> {
-        ParserManager manager;
+        Parser parser;
 
-        public ParserTask(ParserManager manager) {
-            this.manager = manager;
-            manager.setFileParsedListener(this::fileParsed);
-            manager.setPacketParsedListener(this::packetParsed);
+        public ParserTask(Parser p) {
+            this.parser = p;
+            parser.setFileParsedListener(this::fileParsed);
+            parser.setPacketParsedListener(this::packetParsed);
         }
 
         private void packetParsed(Packet packet) {
@@ -154,7 +150,7 @@ public class MyForm extends JFrame {
         @Override
         public Void doInBackground() {
             loadingPanel.start();
-            manager.startParse();
+            parser.startParse();
             return null;
         }
     }
