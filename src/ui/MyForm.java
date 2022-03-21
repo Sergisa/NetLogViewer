@@ -97,8 +97,8 @@ public class MyForm extends JFrame {
     }
 
     private void updateViews(Packet packet) {
-        destLabel.setText(packet.getDestination());
-        sourceLabel.setText(packet.getSource());
+        destLabel.setText(packet.getDestination().toString());
+        sourceLabel.setText(packet.getSource().toString());
         dateLabel.setText(packet.getDate().toString());
     }
 
@@ -114,10 +114,6 @@ public class MyForm extends JFrame {
     static class ExitAction extends AbstractAction {
         @Serial
         private static final long serialVersionUID = 1L;
-
-        ExitAction() {
-
-        }
 
         ExitAction(String name) {
             putValue(NAME, name);

@@ -70,6 +70,21 @@ public class TXTFileParserTest {
         List<Packet> packetList = parser.readStrings(packetStrings);
 
         Assertions.assertEquals(2, packetList.size(), "Illegal row added to packet list");
+
+        Packet packet = Packet.Builder.aPacket()
+                .withDate("Tue Aug 21 12:27:26 2018")
+                .withType(Packet.Type.UDP)
+                .withBytes(139)
+                .withSource("192.168.103.1")
+                .withDestination("255.255.255.255")
+                .build();
+        packetStrings = """
+                Tue Aug 21 12:27:20 2018; ******** IP traffic monitor started ********\r
+                Tue Aug 21 12:32:26 2018; UDP; eth0; 139 bytes; from 192.168.103.1:45323 to 255.255.255.255:5678\r
+                Tue Aug 21 12:27:43 2018; TCP; eth0; 72 bytes; from 81-1-183-199.broadband.progtech.ru:57791 to 192.168.103.253:ftp; first packet\r
+                """;
+        Assertions.assertEquals(packet, parser.readStrings(packetStrings).get(0), "First parsed packet mismatch");
+        Assertions.assertEquals(packet, parser.readStrings(packetStrings).get(1), "Second parsed packet mismatch");
     }
 
     @Test
@@ -82,13 +97,13 @@ public class TXTFileParserTest {
         String illegalDatePacket = "Tue Авг 21 12:27:42 2018; TCP; eth0; 71 bytes; from 192.168.103.253:ftp to 81-1-183-199.broadband.progtech.ru:57788; first packet";
         Assertions.assertThrows(AbstractParser.FileParserException.class, () -> parser.parseStep(illegalDatePacket), "Illegal date parse doesn't thrown");
 
-        String testPacket = "Tue Aug 21 12:27:26 2018; UDP; eth0; 139 bytes; from 192.168.103.1:45323 to 255.255.255.255:5678";
+        String testPacket = "Tue Aug 21 12:27:26 2018; UDP; eth0; 139 bytes; from 192.168.103.1 to 255.255.255.255";
         Packet packet = Packet.Builder.aPacket()
                 .withDate("Tue Aug 21 12:27:26 2018")
                 .withType(Packet.Type.UDP)
                 .withBytes(139)
-                .withSource("192.168.103.1:45323")
-                .withDestination("255.255.255.255:5678")
+                .withSource("192.168.103.1")
+                .withDestination("255.255.255.255")
                 .build();
         Assertions.assertEquals(packet, parser.parseStep(testPacket), "Not recognized packet data");
     }

@@ -32,8 +32,8 @@ public class ListRowView implements ListCellRenderer<Packet> {
             dateTimeLabel.setText(new SimpleDateFormat("dd MMM yyy").format(packet.getDate()));
         }
         packetTypeLabel.setText(packet.getType().toString());
-        packetSourceLabel.setText(packet.getSource());
-        packetDestinationLabel.setText(packet.getDestination());
+        packetSourceLabel.setText(packet.getSource().toString());
+        packetDestinationLabel.setText(packet.getDestination().toString());
         return root;
     }
 }

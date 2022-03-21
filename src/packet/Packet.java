@@ -1,5 +1,7 @@
 package packet;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -9,10 +11,10 @@ public class Packet {
     private final Date date;
     private final int bytes;
     private final Type type;
-    private final String source;
-    private final String destination;
+    private final InetAddress source;
+    private final InetAddress destination;
 
-    protected Packet(Date date, int bytes, Type type, String source, String destination) {
+    protected Packet(Date date, int bytes, Type type, InetAddress source, InetAddress destination) {
         this.date = date;
         this.bytes = bytes;
         this.type = type;
@@ -20,11 +22,11 @@ public class Packet {
         this.destination = destination;
     }
 
-    public String getSource() {
+    public InetAddress getSource() {
         return source;
     }
 
-    public String getDestination() {
+    public InetAddress getDestination() {
         return destination;
     }
 
@@ -86,8 +88,8 @@ public class Packet {
         private Date date;
         private int bytes;
         private Type type;
-        private String source;
-        private String destination;
+        private InetAddress source;
+        private InetAddress destination;
 
         public static Builder aPacket() {
             return new Builder();
@@ -129,13 +131,33 @@ public class Packet {
             return withType(Type.valueOf(type));
         }
 
-        public Builder withSource(String source) {
+        public Builder withSource(InetAddress source) {
             this.source = source;
             return this;
         }
 
-        public Builder withDestination(String destination) {
+        public Builder withSource(String source) {
+            //TODO: try to resolve domain name for IPAddress
+            try {
+                this.source = InetAddress.getByName(source);
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            }
+            return this;
+        }
+
+        public Builder withDestination(InetAddress destination) {
             this.destination = destination;
+            return this;
+        }
+
+        public Builder withDestination(String destination) {
+            //TODO: try to resolve domain name for IPAddress
+            try {
+                this.destination = InetAddress.getByName(destination);
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            }
             return this;
         }
 

@@ -63,18 +63,21 @@ public class TXTFileParser extends AbstractParser implements Parser {
 
     public Packet parseStep(String line) throws FileParserException {
         Packet.Builder parsedPacketBuilder = Packet.Builder.aPacket();
-        final Pattern destSourcePattern = Pattern.compile("from ([^;]*) to ([^;]*)");
         final String COLUMN_SPLITTER = "; ";
         final int DATE_COLUMN_INDEX = 0;
         final int TYPE_COLUMN_INDEX = 1;
         final int BYTES_COLUMN_INDEX = 3;
         final int SOURCE_DEST_COLUMN_INDEX = 4;
+        final Pattern destSourcePattern = Pattern.compile("from ([^;]*) to ([^;]*)");
+        final Pattern IPv4Pattern = Pattern.compile("^(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})$");
+        final Pattern IPv6Pattern = Pattern.compile("(([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]+|::(ffff(:0{1,4})?:)?((25[0-5]|(2[0-4]|1?[0-9])?[0-9])\\.){3}(25[0-5]|(2[0-4]|1?[0-9])?[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1?[0-9])?[0-9])\\.){3}(25[0-5]|(2[0-4]|1?[0-9])?[0-9]))");
+        Matcher destSourceMatcher = destSourcePattern.matcher(line.split(COLUMN_SPLITTER)[SOURCE_DEST_COLUMN_INDEX]);
+        Matcher IPv4Matcher = destSourcePattern.matcher(line.split(COLUMN_SPLITTER)[SOURCE_DEST_COLUMN_INDEX]);
+        Matcher IPv6Matcher = destSourcePattern.matcher(line.split(COLUMN_SPLITTER)[SOURCE_DEST_COLUMN_INDEX]);
 
-        //TODO: try to resolve domain name for IPAddress
         try {
             String[] packetColumns = line.split(COLUMN_SPLITTER);
-            Matcher matcher = destSourcePattern.matcher(line.split(COLUMN_SPLITTER)[SOURCE_DEST_COLUMN_INDEX]);
-            if (matcher.find()) {
+            if (destSourceMatcher.find()) {
                 try {
                     parsedPacketBuilder.withDate(
                             new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy", Locale.ENGLISH)
@@ -85,8 +88,8 @@ public class TXTFileParser extends AbstractParser implements Parser {
                 }
                 parsedPacketBuilder.withType(packetColumns[TYPE_COLUMN_INDEX])
                         .withBytes(packetColumns[BYTES_COLUMN_INDEX].replace(" bytes", ""))
-                        .withSource(matcher.group(1))
-                        .withDestination(matcher.group(2));
+                        .withSource(destSourceMatcher.group(1))
+                        .withDestination(destSourceMatcher.group(2));
             }
             if (packetParsedListener != null) {
                 packetParsedListener.parsed(parsedPacketBuilder.build());
