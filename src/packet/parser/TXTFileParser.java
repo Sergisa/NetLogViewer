@@ -3,6 +3,8 @@ package packet.parser;
 import packet.Packet;
 
 import java.io.*;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -69,14 +71,11 @@ public class TXTFileParser extends AbstractParser implements Parser {
         final int BYTES_COLUMN_INDEX = 3;
         final int SOURCE_DEST_COLUMN_INDEX = 4;
         final Pattern destSourcePattern = Pattern.compile("from ([^;]*) to ([^;]*)");
-        final Pattern IPv4Pattern = Pattern.compile("^(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})$");
-        final Pattern IPv6Pattern = Pattern.compile("(([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]+|::(ffff(:0{1,4})?:)?((25[0-5]|(2[0-4]|1?[0-9])?[0-9])\\.){3}(25[0-5]|(2[0-4]|1?[0-9])?[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1?[0-9])?[0-9])\\.){3}(25[0-5]|(2[0-4]|1?[0-9])?[0-9]))");
-        Matcher destSourceMatcher = destSourcePattern.matcher(line.split(COLUMN_SPLITTER)[SOURCE_DEST_COLUMN_INDEX]);
-        Matcher IPv4Matcher = destSourcePattern.matcher(line.split(COLUMN_SPLITTER)[SOURCE_DEST_COLUMN_INDEX]);
-        Matcher IPv6Matcher = destSourcePattern.matcher(line.split(COLUMN_SPLITTER)[SOURCE_DEST_COLUMN_INDEX]);
 
         try {
+            Matcher destSourceMatcher = destSourcePattern.matcher(line.split(COLUMN_SPLITTER)[SOURCE_DEST_COLUMN_INDEX]);
             String[] packetColumns = line.split(COLUMN_SPLITTER);
+
             if (destSourceMatcher.find()) {
                 try {
                     parsedPacketBuilder.withDate(
@@ -88,8 +87,8 @@ public class TXTFileParser extends AbstractParser implements Parser {
                 }
                 parsedPacketBuilder.withType(packetColumns[TYPE_COLUMN_INDEX])
                         .withBytes(packetColumns[BYTES_COLUMN_INDEX].replace(" bytes", ""))
-                        .withSource(destSourceMatcher.group(1))
-                        .withDestination(destSourceMatcher.group(2));
+                        .withSource(resolveAddress(destSourceMatcher.group(1)))
+                        .withDestination(resolveAddress(destSourceMatcher.group(2)));
             }
             if (packetParsedListener != null) {
                 packetParsedListener.parsed(parsedPacketBuilder.build());
@@ -98,7 +97,25 @@ public class TXTFileParser extends AbstractParser implements Parser {
             throw new FileParserException("Line is Empty");
         } catch (ArrayIndexOutOfBoundsException e) {
             throw new FileParserException("Cannot parse line: " + line);
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
         }
         return parsedPacketBuilder.build();
+    }
+
+    public InetAddress resolveAddress(String address) throws UnknownHostException {
+        final Pattern IPv4Pattern = Pattern.compile("^(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})$");
+        final Pattern IPv4SubPattern = Pattern.compile("(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})");
+        final Pattern IPv6Pattern = Pattern.compile("(([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]+|::(ffff(:0{1,4})?:)?((25[0-5]|(2[0-4]|1?[0-9])?[0-9])\\.){3}(25[0-5]|(2[0-4]|1?[0-9])?[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1?[0-9])?[0-9])\\.){3}(25[0-5]|(2[0-4]|1?[0-9])?[0-9]))");
+        Matcher IPv6Matcher = IPv6Pattern.matcher(address);
+        Matcher IPv4Matcher = IPv4Pattern.matcher(address);
+        Matcher IPv4SubMatcher = IPv4SubPattern.matcher(address);
+        if (IPv4SubMatcher.find()) {
+            return InetAddress.getByName(address.replaceAll(":[\\d\\w]+", ""));
+        } else if (IPv6Matcher.find()) {
+            return InetAddress.getByName(address);
+        } else {
+            return null;
+        }
     }
 }
