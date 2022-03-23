@@ -1,7 +1,6 @@
 package packet;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
+import java.net.InetSocketAddress;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -11,10 +10,10 @@ public class Packet {
     private final Date date;
     private final int bytes;
     private final Type type;
-    private final InetAddress source;
-    private final InetAddress destination;
+    private final InetSocketAddress source;
+    private final InetSocketAddress destination;
 
-    protected Packet(Date date, int bytes, Type type, InetAddress source, InetAddress destination) {
+    protected Packet(Date date, int bytes, Type type, InetSocketAddress source, InetSocketAddress destination) {
         this.date = date;
         this.bytes = bytes;
         this.type = type;
@@ -22,11 +21,11 @@ public class Packet {
         this.destination = destination;
     }
 
-    public InetAddress getSource() {
+    public InetSocketAddress getSource() {
         return source;
     }
 
-    public InetAddress getDestination() {
+    public InetSocketAddress getDestination() {
         return destination;
     }
 
@@ -36,10 +35,6 @@ public class Packet {
 
     public Date getDate() {
         return date;
-    }
-
-    public int getBytes() {
-        return bytes;
     }
 
     @Override
@@ -88,8 +83,8 @@ public class Packet {
         private Date date;
         private int bytes;
         private Type type;
-        private InetAddress source;
-        private InetAddress destination;
+        private InetSocketAddress source;
+        private InetSocketAddress destination;
 
         public static Builder aPacket() {
             return new Builder();
@@ -131,34 +126,32 @@ public class Packet {
             return withType(Type.valueOf(type));
         }
 
-        public Builder withSource(InetAddress source) {
+        public Builder withSource(InetSocketAddress source) {
             this.source = source;
             return this;
         }
 
-        public Builder withSource(String source) {
-            //TODO: try to resolve domain name for IPAddress
-            try {
-                this.source = InetAddress.getByName(source);
-            } catch (UnknownHostException e) {
-                e.printStackTrace();
-            }
+        public Builder withSource(String source, int port) {
+            this.source = new InetSocketAddress(source, port);
             return this;
         }
 
-        public Builder withDestination(InetAddress destination) {
+        public Builder withSource(String source) {
+            return withSource(source, 0);
+        }
+
+        public Builder withDestination(InetSocketAddress destination) {
             this.destination = destination;
             return this;
         }
 
-        public Builder withDestination(String destination) {
-            //TODO: try to resolve domain name for IPAddress
-            try {
-                this.destination = InetAddress.getByName(destination);
-            } catch (UnknownHostException e) {
-                e.printStackTrace();
-            }
+        public Builder withDestination(String destination, int port) {
+            this.destination = new InetSocketAddress(destination, port);
             return this;
+        }
+
+        public Builder withDestination(String destination) {
+            return withDestination(destination, 0);
         }
 
         public Builder but() {

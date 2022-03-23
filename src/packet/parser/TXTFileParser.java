@@ -3,7 +3,7 @@ package packet.parser;
 import packet.Packet;
 
 import java.io.*;
-import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -103,18 +103,22 @@ public class TXTFileParser extends AbstractParser implements Parser {
         return parsedPacketBuilder.build();
     }
 
-    public InetAddress resolveAddress(String address) throws UnknownHostException {
+    public InetSocketAddress resolveAddress(String address) throws UnknownHostException {
         final Pattern IPv4Pattern = Pattern.compile("^(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})$");
-        final Pattern canonicalNamePattern = Pattern.compile("^(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})$");
+        final Pattern DNSMatcher = Pattern.compile("(\\d\\w)*:([\\d\\w]+)");
         final Pattern IPv4SubPattern = Pattern.compile("\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}");
         final Pattern IPv6Pattern = Pattern.compile("(([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]+|::(ffff(:0{1,4})?:)?((25[0-5]|(2[0-4]|1?[0-9])?[0-9])\\.){3}(25[0-5]|(2[0-4]|1?[0-9])?[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1?[0-9])?[0-9])\\.){3}(25[0-5]|(2[0-4]|1?[0-9])?[0-9]))");
         Matcher IPv6Matcher = IPv6Pattern.matcher(address);
         Matcher IPv4Matcher = IPv4Pattern.matcher(address);
         Matcher IPv4SubMatcher = IPv4SubPattern.matcher(address);
         if (IPv4SubMatcher.find()) {
-            return InetAddress.getByName(address.replaceAll(":[\\d\\w]+", ""));
+            String cleanIP = address.replaceAll(":[\\d\\w]+", "");
+            return new InetSocketAddress(cleanIP, 0);
         } else if (IPv6Matcher.find()) {
-            return InetAddress.getByName(address);
+            return new InetSocketAddress(address, 0);
+        } else if (DNSMatcher.matcher(address).find()) {
+            String cleanDNS = address.replaceAll(":[\\d\\w]+", "");
+            return new InetSocketAddress(cleanDNS, 0);
         } else {
             return null;
         }
