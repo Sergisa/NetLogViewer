@@ -8,6 +8,7 @@ import packet.parser.AbstractParser;
 import packet.parser.TXTFileParser;
 
 import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 import java.util.List;
 
 public class TXTFileParserTest {
@@ -25,9 +26,10 @@ public class TXTFileParserTest {
             new InetSocketAddress("123.0.0.1", 80);
             new InetSocketAddress("yandex.ru", 80);
         }, "throws");
-        Assertions.assertEquals(DNS, new InetSocketAddress(IP, 80).getHostName());
-        Assertions.assertEquals(DNS, new InetSocketAddress(DNS, 80).getHostName());
-        Assertions.assertEquals("/" + IP, new InetSocketAddress(IP, 80).getAddress().toString());
+        Assertions.assertEquals(DNS, InetSocketAddress.createUnresolved(IP, 80).getHostName(), "IP is not converted to DNS");
+        Assertions.assertEquals(DNS, new InetSocketAddress(IP, 80).getHostName(), "IP is not converted to DNS");
+        Assertions.assertEquals(DNS, new InetSocketAddress(DNS, 80).getHostName(), "DNS is not converted to DNS");
+        Assertions.assertEquals("/" + IP, new InetSocketAddress(IP, 80).getAddress().toString(), "IP is not converted to IP");
     }
 
     @Test
@@ -43,6 +45,24 @@ public class TXTFileParserTest {
         Assertions.assertEquals(2, packetList.size(), "Illegal row added to packet list");
 
 
+    }
+
+    @Test
+    void resolveDNSCheck() throws AbstractParser.FileParserException {
+        TXTFileParser parser = new TXTFileParser();
+        String IPsmrtp = "185.9.147.1:80";
+        String DNSsmrtp = "shared-25.smartape.ru:80";
+        String IP2 = "192.168.103.1";
+        String IP3 = "255.255.255.255";
+        String DNS1 = "81-1-183-199.broadband.progtech.ru";
+
+        try {
+            Assertions.assertEquals(DNSsmrtp, parser.parseAddress(IPsmrtp, true), "resolve IP as DNS");
+            Assertions.assertEquals(IPsmrtp, parser.parseAddress(IPsmrtp, false), "resolve IP as IP");
+        } catch (UnknownHostException e) {
+            Assertions.fail("adress resolve failed with exception");
+            e.printStackTrace();
+        }
     }
 
     @Test

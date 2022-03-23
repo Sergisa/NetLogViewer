@@ -87,8 +87,8 @@ public class TXTFileParser extends AbstractParser implements Parser {
                 }
                 parsedPacketBuilder.withType(packetColumns[TYPE_COLUMN_INDEX])
                         .withBytes(packetColumns[BYTES_COLUMN_INDEX].replace(" bytes", ""))
-                        .withSource(resolveAddress(destSourceMatcher.group(1)))
-                        .withDestination(resolveAddress(destSourceMatcher.group(2)));
+                        .withSource(parseAddress(destSourceMatcher.group(1)))
+                        .withDestination(parseAddress(destSourceMatcher.group(2)));
             }
             if (packetParsedListener != null) {
                 packetParsedListener.parsed(parsedPacketBuilder.build());
@@ -103,7 +103,11 @@ public class TXTFileParser extends AbstractParser implements Parser {
         return parsedPacketBuilder.build();
     }
 
-    public InetSocketAddress resolveAddress(String address) throws UnknownHostException {
+    public InetSocketAddress parseAddress(String address) throws UnknownHostException {
+        return parseAddress(address, resolveDomainAddress);
+    }
+
+    public InetSocketAddress parseAddress(String address, boolean resolveDNS) throws UnknownHostException {
         final Pattern IPv4Pattern = Pattern.compile("^(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})$");
         final Pattern DNSMatcher = Pattern.compile("(\\d\\w)*:([\\d\\w]+)");
         final Pattern IPv4SubPattern = Pattern.compile("\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}");
@@ -113,8 +117,17 @@ public class TXTFileParser extends AbstractParser implements Parser {
         Matcher IPv4SubMatcher = IPv4SubPattern.matcher(address);
         if (IPv4SubMatcher.find()) {
             String cleanIP = address.replaceAll(":[\\d\\w]+", "");
-            return new InetSocketAddress(cleanIP, 0);
+            if (resolveDNS) {
+                return InetSocketAddress.createUnresolved(cleanIP, 0);
+            } else {
+                return new InetSocketAddress(cleanIP, 0);
+            }
         } else if (IPv6Matcher.find()) {
+            if (resolveDNS) {
+                return InetSocketAddress.createUnresolved(cleanIP, 0);
+            } else {
+                return new InetSocketAddress(cleanIP, 0);
+            }
             return new InetSocketAddress(address, 0);
         } else if (DNSMatcher.matcher(address).find()) {
             String cleanDNS = address.replaceAll(":[\\d\\w]+", "");
